@@ -53,13 +53,17 @@ export declare class AuthService {
     resetPassword(token: string, newPassword: string): Promise<{
         message: string;
     }>;
-    private generateAccessToken;
-    private generateRefreshToken;
-    private hashToken;
-    findUserById(id: string): Promise<{
+    generateAccessToken(user: {
         id: string;
         email: string;
+        role: string;
+    }): string;
+    private generateRefreshToken;
+    hashToken(token: string): string;
+    findUserById(id: string): Promise<{
+        id: string;
         name: string;
+        email: string;
         emailVerified: boolean;
         role: string;
         isSuspended: boolean;

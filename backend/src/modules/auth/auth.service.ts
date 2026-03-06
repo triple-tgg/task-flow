@@ -453,7 +453,7 @@ export class AuthService {
 
     // ─── Helpers ──────────────────────────────────────────
 
-    private generateAccessToken(user: { id: string; email: string; role: string }) {
+    generateAccessToken(user: { id: string; email: string; role: string }) {
         const payload = { sub: user.id, email: user.email, role: user.role };
         const secret = this.configService.get<string>('JWT_SECRET')!;
         const expiresIn = this.configService.get<string>('JWT_ACCESS_EXPIRATION') || '15m';
@@ -469,7 +469,7 @@ export class AuthService {
         return { refreshToken, refreshTokenHash };
     }
 
-    private hashToken(token: string): string {
+    hashToken(token: string): string {
         return crypto.createHash('sha256').update(token).digest('hex');
     }
 
