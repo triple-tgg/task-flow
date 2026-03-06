@@ -45,11 +45,11 @@ export default function Sidebar() {
     return (
         <aside className="sidebar">
             {/* Logo */}
-            <div className="sidebar-logo" onClick={() => navigate('/projects')}>
+            <div className="sidebar-logo" onClick={() => navigate('/')}>
                 <div className="sidebar-logo-icon">
                     <FolderKanban size={18} />
                 </div>
-                <span className="sidebar-logo-text">TaskFlow</span>
+                <span className="sidebar-logo-text ">TaskFlow</span>
             </div>
 
             {/* Search + Theme */}
