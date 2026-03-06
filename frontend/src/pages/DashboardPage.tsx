@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useProjectsStore } from '../stores/projectsStore';
 import { useAuthStore } from '../stores/authStore';
 import GlobalSearch from '../components/GlobalSearch';
+import ThemeToggle from '../components/ThemeToggle';
 import {
     Plus,
     FolderKanban,
@@ -14,6 +15,7 @@ import {
     Trash2,
     Edit3,
     X,
+    BarChart3,
 } from 'lucide-react';
 
 export default function DashboardPage() {
@@ -86,6 +88,10 @@ export default function DashboardPage() {
                     <GlobalSearch />
                 </div>
                 <div className="header-right">
+                    <button className="btn-icon" onClick={() => navigate('/analytics')} title="Analytics">
+                        <BarChart3 size={18} />
+                    </button>
+                    <ThemeToggle />
                     <div className="user-info">
                         <div className="user-avatar">{user?.name?.charAt(0)?.toUpperCase() || 'U'}</div>
                         <span className="user-name">{user?.name}</span>

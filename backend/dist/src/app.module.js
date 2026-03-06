@@ -20,6 +20,7 @@ const comments_1 = require("./modules/comments");
 const notifications_1 = require("./modules/notifications");
 const search_1 = require("./modules/search");
 const activity_log_1 = require("./modules/activity-log");
+const analytics_1 = require("./modules/analytics");
 const http_exception_filter_1 = require("./common/filters/http-exception.filter");
 let AppModule = class AppModule {
 };
@@ -43,6 +44,7 @@ exports.AppModule = AppModule = __decorate([
             notifications_1.NotificationsModule,
             search_1.SearchModule,
             activity_log_1.ActivityLogModule,
+            analytics_1.AnalyticsModule,
         ],
         providers: [
             {

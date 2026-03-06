@@ -11,6 +11,7 @@ import { CommentsModule } from './modules/comments';
 import { NotificationsModule } from './modules/notifications';
 import { SearchModule } from './modules/search';
 import { ActivityLogModule } from './modules/activity-log';
+import { AnalyticsModule } from './modules/analytics';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 
 @Module({
@@ -38,6 +39,7 @@ import { HttpExceptionFilter } from './common/filters/http-exception.filter';
     NotificationsModule,
     SearchModule,
     ActivityLogModule,
+    AnalyticsModule,
   ],
   providers: [
     // Global error format (TDD Section 6)
