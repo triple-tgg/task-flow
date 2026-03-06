@@ -9,6 +9,8 @@ import { ProjectsModule } from './modules/projects';
 import { TasksModule } from './modules/tasks';
 import { CommentsModule } from './modules/comments';
 import { NotificationsModule } from './modules/notifications';
+import { SearchModule } from './modules/search';
+import { ActivityLogModule } from './modules/activity-log';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 
 @Module({
@@ -34,6 +36,8 @@ import { HttpExceptionFilter } from './common/filters/http-exception.filter';
     TasksModule,
     CommentsModule,
     NotificationsModule,
+    SearchModule,
+    ActivityLogModule,
   ],
   providers: [
     // Global error format (TDD Section 6)

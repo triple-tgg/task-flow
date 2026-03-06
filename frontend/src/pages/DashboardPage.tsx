@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useProjectsStore } from '../stores/projectsStore';
 import { useAuthStore } from '../stores/authStore';
+import GlobalSearch from '../components/GlobalSearch';
 import {
     Plus,
     FolderKanban,
@@ -82,6 +83,7 @@ export default function DashboardPage() {
                         <FolderKanban size={24} />
                         TaskFlow
                     </h1>
+                    <GlobalSearch />
                 </div>
                 <div className="header-right">
                     <div className="user-info">
