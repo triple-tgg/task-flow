@@ -1,0 +1,229 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["fullTextSearchPostgres"]
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── Auth Tables ──────────────────────────────────────────
+
+model User {
+  id            String    @id @default(uuid())
+  name          String
+  email         String    @unique
+  passwordHash  String
+  emailVerified Boolean   @default(false)
+  role          String    @default("user")
+  isSuspended   Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+
+  refreshTokens           RefreshToken[]
+  emailVerificationTokens EmailVerificationToken[]
+  passwordResetTokens     PasswordResetToken[]
+  projectMembers          ProjectMember[]
+  createdTasks            Task[]         @relation("TaskCreator")
+  assignedTasks           Task[]         @relation("TaskAssignee")
+  comments                Comment[]
+  notifications           Notification[]
+  attachments             Attachment[]
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  userId    String
+  tokenHash String
+  isRevoked Boolean  @default(false)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  userAgent String?
+  ipAddress String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([tokenHash])
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+model EmailVerificationToken {
+  id        String   @id @default(uuid())
+  userId    String
+  tokenHash String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([tokenHash])
+  @@map("email_verification_tokens")
+}
+
+model PasswordResetToken {
+  id        String    @id @default(uuid())
+  userId    String
+  tokenHash String
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([tokenHash])
+  @@map("password_reset_tokens")
+}
+
+// ─── Project Tables ───────────────────────────────────────
+
+model Project {
+  id          String    @id @default(uuid())
+  name        String
+  description String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+
+  members ProjectMember[]
+  tasks   Task[]
+  tags    Tag[]
+
+  @@map("projects")
+}
+
+model ProjectMember {
+  id        String   @id @default(uuid())
+  projectId String
+  userId    String
+  role      String   @default("editor") // owner, editor, viewer
+  joinedAt  DateTime @default(now())
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, userId])
+  @@map("project_members")
+}
+
+// ─── Task Tables ──────────────────────────────────────────
+
+model Task {
+  id            String    @id @default(uuid())
+  projectId     String
+  title         String
+  description   String?
+  status        String    @default("todo") // todo, in_progress, review, done
+  priority      String    @default("medium") // low, medium, high, urgent
+  dueDate       DateTime?
+  position      Int       @default(0)
+  recurringRule Json?
+  creatorId     String
+  assigneeId    String?
+  parentId      String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+  deletedBy     String?
+
+  project     Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  creator     User         @relation("TaskCreator", fields: [creatorId], references: [id])
+  assignee    User?        @relation("TaskAssignee", fields: [assigneeId], references: [id])
+  parent      Task?        @relation("SubTasks", fields: [parentId], references: [id])
+  subTasks    Task[]       @relation("SubTasks")
+  comments    Comment[]
+  attachments Attachment[]
+  tags        TaskTag[]
+
+  @@index([projectId, status])
+  @@index([assigneeId])
+  @@index([parentId])
+  @@index([createdAt])
+  @@map("tasks")
+}
+
+model Tag {
+  id        String   @id @default(uuid())
+  projectId String
+  name      String
+  color     String?
+  createdAt DateTime @default(now())
+
+  project Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  tasks   TaskTag[]
+
+  @@unique([projectId, name])
+  @@map("tags")
+}
+
+model TaskTag {
+  taskId String
+  tagId  String
+
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  tag  Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([taskId, tagId])
+  @@map("task_tags")
+}
+
+// ─── Comment Tables ───────────────────────────────────────
+
+model Comment {
+  id        String    @id @default(uuid())
+  taskId    String
+  userId    String
+  content   String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([taskId, createdAt])
+  @@map("comments")
+}
+
+// ─── Attachment Tables ────────────────────────────────────
+
+model Attachment {
+  id          String    @id @default(uuid())
+  taskId      String
+  userId      String
+  filename    String
+  storagePath String
+  size        Int
+  mimeType    String
+  createdAt   DateTime  @default(now())
+  deletedAt   DateTime?
+
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([taskId])
+  @@map("attachments")
+}
+
+// ─── Notification Tables ──────────────────────────────────
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  type      String
+  payload   Json
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+  @@index([createdAt])
+  @@map("notifications")
+}
