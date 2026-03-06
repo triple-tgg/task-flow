@@ -12,7 +12,7 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
-import { v4 as uuidv4 } from 'uuid';
+
 import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()
@@ -67,7 +67,7 @@ export class AuthService {
         });
 
         // Create email verification token
-        const verificationToken = uuidv4();
+        const verificationToken = crypto.randomUUID();
         const tokenHash = this.hashToken(verificationToken);
 
         await this.prisma.emailVerificationToken.create({
@@ -145,7 +145,7 @@ export class AuthService {
         });
 
         // Create new token
-        const verificationToken = uuidv4();
+        const verificationToken = crypto.randomUUID();
         const tokenHash = this.hashToken(verificationToken);
 
         await this.prisma.emailVerificationToken.create({
@@ -464,7 +464,7 @@ export class AuthService {
     }
 
     private generateRefreshToken() {
-        const refreshToken = uuidv4();
+        const refreshToken = crypto.randomUUID();
         const refreshTokenHash = this.hashToken(refreshToken);
         return { refreshToken, refreshTokenHash };
     }

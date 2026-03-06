@@ -19,7 +19,7 @@ export declare class AuthService {
     }>;
     login(email: string, password: string, userAgent?: string, ipAddress?: string): Promise<{
         accessToken: string;
-        refreshToken: string;
+        refreshToken: `${string}-${string}-${string}-${string}-${string}`;
         user: {
             id: string;
             name: string;
@@ -29,7 +29,7 @@ export declare class AuthService {
     }>;
     refreshTokens(oldRefreshToken: string, userAgent?: string, ipAddress?: string): Promise<{
         accessToken: string;
-        refreshToken: string;
+        refreshToken: `${string}-${string}-${string}-${string}-${string}`;
         user: {
             id: string;
             name: string;

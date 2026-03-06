@@ -49,7 +49,6 @@ const jwt_1 = require("@nestjs/jwt");
 const config_1 = require("@nestjs/config");
 const bcrypt = __importStar(require("bcrypt"));
 const crypto = __importStar(require("crypto"));
-const uuid_1 = require("uuid");
 const prisma_service_1 = require("../../prisma/prisma.service");
 let AuthService = AuthService_1 = class AuthService {
     prisma;
@@ -89,7 +88,7 @@ let AuthService = AuthService_1 = class AuthService {
                 emailVerified: false,
             },
         });
-        const verificationToken = (0, uuid_1.v4)();
+        const verificationToken = crypto.randomUUID();
         const tokenHash = this.hashToken(verificationToken);
         await this.prisma.emailVerificationToken.create({
             data: {
@@ -143,7 +142,7 @@ let AuthService = AuthService_1 = class AuthService {
         await this.prisma.emailVerificationToken.deleteMany({
             where: { userId: user.id },
         });
-        const verificationToken = (0, uuid_1.v4)();
+        const verificationToken = crypto.randomUUID();
         const tokenHash = this.hashToken(verificationToken);
         await this.prisma.emailVerificationToken.create({
             data: {
@@ -371,7 +370,7 @@ let AuthService = AuthService_1 = class AuthService {
         });
     }
     generateRefreshToken() {
-        const refreshToken = (0, uuid_1.v4)();
+        const refreshToken = crypto.randomUUID();
         const refreshTokenHash = this.hashToken(refreshToken);
         return { refreshToken, refreshTokenHash };
     }
