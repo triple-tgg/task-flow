@@ -66,10 +66,40 @@ export class ProjectsService {
             }),
         ]);
 
+        // Fetch done and overdue counts for each project
+        const projectIds = memberships.map((m) => m.project.id);
+        const now = new Date();
+
+        const [doneCounts, overdueCounts] = await Promise.all([
+            this.prisma.task.groupBy({
+                by: ['projectId'],
+                where: { projectId: { in: projectIds }, status: 'done', deletedAt: null },
+                _count: true,
+            }),
+            this.prisma.task.groupBy({
+                by: ['projectId'],
+                where: {
+                    projectId: { in: projectIds },
+                    dueDate: { lt: now },
+                    status: { not: 'done' },
+                    deletedAt: null,
+                },
+                _count: true,
+            }),
+        ]);
+
+        const doneMap = new Map(doneCounts.map((d) => [d.projectId, d._count]));
+        const overdueMap = new Map(overdueCounts.map((d) => [d.projectId, d._count]));
+
         return {
             data: memberships.map((m) => ({
                 ...m.project,
                 myRole: m.role,
+                taskStats: {
+                    total: m.project._count.tasks,
+                    done: doneMap.get(m.project.id) || 0,
+                    overdue: overdueMap.get(m.project.id) || 0,
+                },
             })),
             meta: { total, page, limit, totalPages: Math.ceil(total / limit) },
         };

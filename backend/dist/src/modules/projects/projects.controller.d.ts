@@ -10,23 +10,28 @@ export declare class ProjectsController {
         }[];
         id: string;
         name: string;
+        description: string | null;
         createdAt: Date;
         updatedAt: Date;
         deletedAt: Date | null;
-        description: string | null;
     }>;
     findAll(userId: string, page?: string, limit?: string): Promise<{
         data: {
             myRole: string;
+            taskStats: {
+                total: number;
+                done: number;
+                overdue: number;
+            };
             id: string;
             name: string;
+            description: string | null;
             createdAt: Date;
             updatedAt: Date;
             _count: {
                 members: number;
                 tasks: number;
             };
-            description: string | null;
         }[];
         meta: {
             total: number;
@@ -37,34 +42,34 @@ export declare class ProjectsController {
     }>;
     findOne(id: string, userId: string): Promise<{
         myRole: string;
-        _count: {
-            tasks: number;
-        };
         members: ({
             user: {
                 id: string;
-                email: string;
                 name: string;
+                email: string;
             };
         } & {
             id: string;
-            role: string;
-            userId: string;
             projectId: string;
+            userId: string;
+            role: string;
             joinedAt: Date;
         })[];
+        _count: {
+            tasks: number;
+        };
         id: string;
         name: string;
+        description: string | null;
         createdAt: Date;
         updatedAt: Date;
         deletedAt: Date | null;
-        description: string | null;
     }>;
     update(id: string, userId: string, dto: UpdateProjectDto): Promise<{
         id: string;
         name: string;
-        updatedAt: Date;
         description: string | null;
+        updatedAt: Date;
     }>;
     remove(id: string, userId: string): Promise<{
         message: string;
@@ -72,27 +77,27 @@ export declare class ProjectsController {
     addMember(projectId: string, requesterId: string, dto: AddMemberDto): Promise<{
         user: {
             id: string;
-            email: string;
             name: string;
+            email: string;
         };
     } & {
         id: string;
-        role: string;
-        userId: string;
         projectId: string;
+        userId: string;
+        role: string;
         joinedAt: Date;
     }>;
     updateMemberRole(projectId: string, targetUserId: string, requesterId: string, dto: UpdateMemberRoleDto): Promise<{
         user: {
             id: string;
-            email: string;
             name: string;
+            email: string;
         };
     } & {
         id: string;
-        role: string;
-        userId: string;
         projectId: string;
+        userId: string;
+        role: string;
         joinedAt: Date;
     }>;
     removeMember(projectId: string, targetUserId: string, requesterId: string): Promise<{

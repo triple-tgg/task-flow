@@ -9,6 +9,7 @@ interface Project {
     createdAt: string;
     updatedAt: string;
     _count?: { tasks: number; members: number };
+    taskStats?: { total: number; done: number; overdue: number };
 }
 
 interface ProjectsState {

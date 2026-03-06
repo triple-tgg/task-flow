@@ -1,14 +1,36 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
-    ArrowLeft,
     Plus,
     Clock,
     MessageSquare,
     X,
+    ChevronRight,
+    FolderKanban,
+    Home,
+    GripVertical,
+    Trash2,
+    Save,
 } from 'lucide-react';
+import {
+    DndContext,
+    DragOverlay,
+    closestCorners,
+    PointerSensor,
+    useSensor,
+    useSensors,
+} from '@dnd-kit/core';
+import type { DragStartEvent, DragEndEvent, DragOverEvent } from '@dnd-kit/core';
+import {
+    SortableContext,
+    verticalListSortingStrategy,
+    useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { tasksApi } from '../api/tasks';
 import type { Task, KanbanBoard } from '../api/tasks';
+import { useProjectsStore } from '../stores/projectsStore';
+import Sidebar from '../components/Sidebar';
 
 const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
     todo: { label: 'To Do', color: '#64748b' },
@@ -24,9 +46,113 @@ const PRIORITY_CONFIG: Record<string, { label: string; color: string }> = {
     urgent: { label: 'Urgent', color: '#ef4444' },
 };
 
+// ─── Sortable Task Card ────────────────────────────────
+function SortableTaskCard({ task, onClick }: { task: Task; onClick: () => void }) {
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+        isDragging,
+    } = useSortable({ id: task.id, data: { type: 'task', task } });
+
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+        opacity: isDragging ? 0.4 : 1,
+    };
+
+    return (
+        <div ref={setNodeRef} style={style} className="kanban-card" onClick={onClick}>
+            <div className="kanban-card-drag" {...attributes} {...listeners} onClick={(e) => e.stopPropagation()}>
+                <GripVertical size={14} />
+            </div>
+            <div className="priority-line" style={{ background: PRIORITY_CONFIG[task.priority]?.color }} />
+
+            {task.tags.length > 0 && (
+                <div className="task-tags">
+                    {task.tags.map((t) => (
+                        <span key={t.tag.id} className="tag-badge">{t.tag.name}</span>
+                    ))}
+                </div>
+            )}
+
+            <h4 className="task-title">{task.title}</h4>
+
+            {task.description && (
+                <p className="task-desc">
+                    {task.description.substring(0, 80)}
+                    {task.description.length > 80 ? '...' : ''}
+                </p>
+            )}
+
+            <div className="task-meta">
+                {task.dueDate && (
+                    <span className="meta-item">
+                        <Clock size={12} />
+                        {new Date(task.dueDate).toLocaleDateString()}
+                    </span>
+                )}
+                {task._count.comments > 0 && (
+                    <span className="meta-item">
+                        <MessageSquare size={12} />
+                        {task._count.comments}
+                    </span>
+                )}
+                {task.subTasks.length > 0 && (
+                    <span className="meta-item">
+                        {task.subTasks.filter((s) => s.status === 'done').length}/{task.subTasks.length}
+                    </span>
+                )}
+            </div>
+
+            <div className="task-footer">
+                {task.assignee ? (
+                    <div className="assignee-avatar" title={task.assignee.name}>
+                        {task.assignee.name.charAt(0).toUpperCase()}
+                    </div>
+                ) : (
+                    <div />
+                )}
+                <span
+                    className="priority-badge"
+                    style={{
+                        color: PRIORITY_CONFIG[task.priority]?.color,
+                        borderColor: PRIORITY_CONFIG[task.priority]?.color,
+                    }}
+                >
+                    {PRIORITY_CONFIG[task.priority]?.label}
+                </span>
+            </div>
+        </div>
+    );
+}
+
+// ─── Task Card Overlay (for drag preview) ─────────────
+function TaskCardOverlay({ task }: { task: Task }) {
+    return (
+        <div className="kanban-card dragging-overlay">
+            <div className="priority-line" style={{ background: PRIORITY_CONFIG[task.priority]?.color }} />
+            <h4 className="task-title">{task.title}</h4>
+            <span
+                className="priority-badge"
+                style={{
+                    color: PRIORITY_CONFIG[task.priority]?.color,
+                    borderColor: PRIORITY_CONFIG[task.priority]?.color,
+                }}
+            >
+                {PRIORITY_CONFIG[task.priority]?.label}
+            </span>
+        </div>
+    );
+}
+
+// ─── Main Page ─────────────────────────────────────────
 export default function ProjectDetailPage() {
     const { projectId } = useParams<{ projectId: string }>();
     const navigate = useNavigate();
+    const { currentProject, fetchProject } = useProjectsStore();
 
     const [board, setBoard] = useState<KanbanBoard | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -36,6 +162,17 @@ export default function ProjectDetailPage() {
     const [newTaskDesc, setNewTaskDesc] = useState('');
     const [newTaskPriority, setNewTaskPriority] = useState('medium');
     const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+    const [activeTask, setActiveTask] = useState<Task | null>(null);
+
+    // Editable sidebar fields
+    const [editPriority, setEditPriority] = useState('');
+    const [editDescription, setEditDescription] = useState('');
+    const [editDueDate, setEditDueDate] = useState('');
+    const [isSaving, setIsSaving] = useState(false);
+
+    const sensors = useSensors(
+        useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    );
 
     const fetchBoard = useCallback(async () => {
         if (!projectId) return;
@@ -51,7 +188,16 @@ export default function ProjectDetailPage() {
 
     useEffect(() => {
         fetchBoard();
-    }, [fetchBoard]);
+        if (projectId) fetchProject(projectId);
+    }, [fetchBoard, projectId]);
+
+    // When selecting a task, copy editable fields
+    const openTaskDetail = (task: Task) => {
+        setSelectedTask(task);
+        setEditPriority(task.priority);
+        setEditDescription(task.description || '');
+        setEditDueDate(task.dueDate ? task.dueDate.split('T')[0] : '');
+    };
 
     const handleCreateTask = async () => {
         if (!newTaskTitle.trim() || !projectId) return;
@@ -85,6 +231,29 @@ export default function ProjectDetailPage() {
         }
     };
 
+    const handleSaveTaskEdits = async () => {
+        if (!selectedTask || !projectId) return;
+        setIsSaving(true);
+        try {
+            await tasksApi.update(selectedTask.id, projectId, {
+                priority: editPriority,
+                description: editDescription,
+                dueDate: editDueDate ? new Date(editDueDate).toISOString() : undefined,
+            });
+            await fetchBoard();
+            setSelectedTask({
+                ...selectedTask,
+                priority: editPriority,
+                description: editDescription,
+                dueDate: editDueDate ? new Date(editDueDate).toISOString() : selectedTask.dueDate,
+            });
+        } catch (err) {
+            console.error('Failed to update task', err);
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
     const handleDeleteTask = async (taskId: string) => {
         if (!projectId || !confirm('Delete this task?')) return;
         try {
@@ -96,24 +265,106 @@ export default function ProjectDetailPage() {
         }
     };
 
+    // ─── DnD Handlers ─────────────────────────────────
+    const findColumnForTask = (taskId: string): string | null => {
+        if (!board) return null;
+        for (const [status, tasks] of Object.entries(board) as [string, Task[]][]) {
+            if (tasks.some((t: Task) => t.id === taskId)) return status;
+        }
+        return null;
+    };
+
+    const handleDragStart = (event: DragStartEvent) => {
+        const { active } = event;
+        const col = findColumnForTask(active.id as string);
+        if (col && board) {
+            const task = board[col as keyof KanbanBoard]?.find((t) => t.id === active.id);
+            if (task) setActiveTask(task);
+        }
+    };
+
+    const handleDragOver = (event: DragOverEvent) => {
+        const { active, over } = event;
+        if (!over || !board) return;
+
+        const activeId = active.id as string;
+        const overId = over.id as string;
+
+        const activeCol = findColumnForTask(activeId);
+        // Check if overId is a column name
+        const overCol = Object.keys(STATUS_CONFIG).includes(overId) ? overId : findColumnForTask(overId);
+
+        if (!activeCol || !overCol || activeCol === overCol) return;
+
+        // Move task between columns in local state for smooth UX
+        setBoard((prev) => {
+            if (!prev) return prev;
+            const activeTasks = [...(prev[activeCol as keyof KanbanBoard] || [])];
+            const overTasks = [...(prev[overCol as keyof KanbanBoard] || [])];
+            const taskIndex = activeTasks.findIndex((t) => t.id === activeId);
+            if (taskIndex === -1) return prev;
+
+            const [movedTask] = activeTasks.splice(taskIndex, 1);
+            movedTask.status = overCol;
+            overTasks.push(movedTask);
+
+            return {
+                ...prev,
+                [activeCol]: activeTasks,
+                [overCol]: overTasks,
+            };
+        });
+    };
+
+    const handleDragEnd = async (event: DragEndEvent) => {
+        setActiveTask(null);
+        const { active, over } = event;
+        if (!over || !board || !projectId) return;
+
+        const activeId = active.id as string;
+        const newCol = findColumnForTask(activeId);
+
+        if (newCol) {
+            // Persist status change to backend
+            const task = board[newCol as keyof KanbanBoard]?.find((t) => t.id === activeId);
+            if (task && task.status !== newCol) {
+                // already updated locally, now persist
+            }
+            try {
+                await tasksApi.update(activeId, projectId, { status: newCol });
+            } catch (err) {
+                console.error('Failed to move task', err);
+                await fetchBoard(); // rollback
+            }
+        }
+    };
+
     const totalTasks = board
         ? Object.values(board).reduce((sum, col) => sum + col.length, 0)
         : 0;
 
+    const projectName = currentProject?.name || 'Project';
+
     return (
-        <div className="dashboard-layout">
-            {/* Header */}
-            <header className="dashboard-header">
-                <div className="header-left">
-                    <button className="btn-icon" onClick={() => navigate('/dashboard')}>
-                        <ArrowLeft size={18} />
-                    </button>
-                    <h1 className="logo-text">Project Board</h1>
-                    <span className="text-muted" style={{ marginLeft: 8 }}>
-                        {totalTasks} tasks
-                    </span>
-                </div>
-                <div className="header-right">
+        <div className="app-layout">
+            <Sidebar />
+            <main className="main-content" style={{ padding: 0, display: 'flex', flexDirection: 'column' }}>
+                {/* Breadcrumb + Actions Bar */}
+                <div className="project-topbar">
+                    <div className="breadcrumb">
+                        <button className="breadcrumb-item" onClick={() => navigate('/dashboard')}>
+                            <Home size={14} />
+                            <span>Dashboard</span>
+                        </button>
+                        <ChevronRight size={14} className="breadcrumb-sep" />
+                        <button className="breadcrumb-item" onClick={() => navigate('/dashboard')}>
+                            <FolderKanban size={14} />
+                            <span>Projects</span>
+                        </button>
+                        <ChevronRight size={14} className="breadcrumb-sep" />
+                        <span className="breadcrumb-current">{projectName}</span>
+                        <span className="breadcrumb-count">{totalTasks} tasks</span>
+                    </div>
                     <button
                         className="btn-primary"
                         onClick={() => {
@@ -121,303 +372,275 @@ export default function ProjectDetailPage() {
                             setShowCreateModal(true);
                         }}
                     >
-                        <Plus size={18} />
+                        <Plus size={16} />
                         Add Task
                     </button>
                 </div>
-            </header>
 
-            {/* Kanban Board */}
-            <main className="kanban-container">
-                {isLoading ? (
-                    <div className="loading-state">
-                        <div className="spinner" style={{ width: 32, height: 32 }} />
-                    </div>
-                ) : (
-                    <div className="kanban-board">
-                        {Object.entries(STATUS_CONFIG).map(([status, config]) => (
-                            <div key={status} className="kanban-column">
-                                <div className="kanban-column-header">
-                                    <div className="kanban-column-title">
-                                        <div
-                                            className="status-dot"
-                                            style={{ background: config.color }}
-                                        />
-                                        <span>{config.label}</span>
-                                        <span className="kanban-count">
-                                            {board?.[status as keyof KanbanBoard]?.length || 0}
-                                        </span>
-                                    </div>
-                                    <button
-                                        className="btn-icon-sm"
-                                        onClick={() => {
-                                            setCreateStatus(status);
-                                            setShowCreateModal(true);
-                                        }}
-                                    >
-                                        <Plus size={14} />
-                                    </button>
-                                </div>
-
-                                <div className="kanban-cards">
-                                    {board?.[status as keyof KanbanBoard]?.map((task) => (
-                                        <div
-                                            key={task.id}
-                                            className="kanban-card"
-                                            onClick={() => setSelectedTask(task)}
-                                        >
-                                            {/* Priority indicator */}
-                                            <div
-                                                className="priority-line"
-                                                style={{ background: PRIORITY_CONFIG[task.priority]?.color }}
-                                            />
-
-                                            {/* Tags */}
-                                            {task.tags.length > 0 && (
-                                                <div className="task-tags">
-                                                    {task.tags.map((t) => (
-                                                        <span key={t.tag.id} className="tag-badge">
-                                                            {t.tag.name}
-                                                        </span>
-                                                    ))}
+                {/* Kanban Board with DnD */}
+                <div className="kanban-container" style={{ flex: 1, overflow: 'auto' }}>
+                    {isLoading ? (
+                        <div className="loading-state">
+                            <div className="spinner" style={{ width: 32, height: 32 }} />
+                        </div>
+                    ) : (
+                        <DndContext
+                            sensors={sensors}
+                            collisionDetection={closestCorners}
+                            onDragStart={handleDragStart}
+                            onDragOver={handleDragOver}
+                            onDragEnd={handleDragEnd}
+                        >
+                            <div className="kanban-board">
+                                {Object.entries(STATUS_CONFIG).map(([status, config]) => {
+                                    const columnTasks = board?.[status as keyof KanbanBoard] || [];
+                                    return (
+                                        <div key={status} className="kanban-column" id={status}>
+                                            <div className="kanban-column-header">
+                                                <div className="kanban-column-title">
+                                                    <div className="status-dot" style={{ background: config.color }} />
+                                                    <span>{config.label}</span>
+                                                    <span className="kanban-count">{columnTasks.length}</span>
                                                 </div>
-                                            )}
-
-                                            <h4 className="task-title">{task.title}</h4>
-
-                                            {task.description && (
-                                                <p className="task-desc">
-                                                    {task.description.substring(0, 80)}
-                                                    {task.description.length > 80 ? '...' : ''}
-                                                </p>
-                                            )}
-
-                                            <div className="task-meta">
-                                                {task.dueDate && (
-                                                    <span className="meta-item">
-                                                        <Clock size={12} />
-                                                        {new Date(task.dueDate).toLocaleDateString()}
-                                                    </span>
-                                                )}
-                                                {task._count.comments > 0 && (
-                                                    <span className="meta-item">
-                                                        <MessageSquare size={12} />
-                                                        {task._count.comments}
-                                                    </span>
-                                                )}
-                                                {task.subTasks.length > 0 && (
-                                                    <span className="meta-item">
-                                                        {task.subTasks.filter((s) => s.status === 'done').length}/
-                                                        {task.subTasks.length}
-                                                    </span>
-                                                )}
-                                            </div>
-
-                                            <div className="task-footer">
-                                                {task.assignee ? (
-                                                    <div className="assignee-avatar" title={task.assignee.name}>
-                                                        {task.assignee.name.charAt(0).toUpperCase()}
-                                                    </div>
-                                                ) : (
-                                                    <div />
-                                                )}
-                                                <span
-                                                    className="priority-badge"
-                                                    style={{
-                                                        color: PRIORITY_CONFIG[task.priority]?.color,
-                                                        borderColor: PRIORITY_CONFIG[task.priority]?.color,
+                                                <button
+                                                    className="btn-icon-sm"
+                                                    onClick={() => {
+                                                        setCreateStatus(status);
+                                                        setShowCreateModal(true);
                                                     }}
                                                 >
-                                                    {PRIORITY_CONFIG[task.priority]?.label}
+                                                    <Plus size={14} />
+                                                </button>
+                                            </div>
+
+                                            <SortableContext
+                                                items={columnTasks.map((t) => t.id)}
+                                                strategy={verticalListSortingStrategy}
+                                                id={status}
+                                            >
+                                                <div className="kanban-cards" data-column={status}>
+                                                    {columnTasks.map((task) => (
+                                                        <SortableTaskCard
+                                                            key={task.id}
+                                                            task={task}
+                                                            onClick={() => openTaskDetail(task)}
+                                                        />
+                                                    ))}
+                                                </div>
+                                            </SortableContext>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+
+                            <DragOverlay>
+                                {activeTask ? <TaskCardOverlay task={activeTask} /> : null}
+                            </DragOverlay>
+                        </DndContext>
+                    )}
+                </div>
+
+                {/* Editable Task Detail Sidebar */}
+                {selectedTask && (
+                    <div className="task-sidebar-overlay" onClick={() => setSelectedTask(null)}>
+                        <div className="task-sidebar" onClick={(e) => e.stopPropagation()}>
+                            <div className="sidebar-header">
+                                <h3>{selectedTask.title}</h3>
+                                <button className="btn-icon" onClick={() => setSelectedTask(null)}>
+                                    <X size={18} />
+                                </button>
+                            </div>
+
+                            <div className="sidebar-body">
+                                {/* Status */}
+                                <div className="sidebar-field">
+                                    <label>Status</label>
+                                    <select
+                                        value={selectedTask.status}
+                                        onChange={(e) => handleStatusChange(selectedTask, e.target.value)}
+                                        className="form-input"
+                                    >
+                                        {Object.entries(STATUS_CONFIG).map(([key, cfg]) => (
+                                            <option key={key} value={key}>{cfg.label}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                {/* Priority (editable) */}
+                                <div className="sidebar-field">
+                                    <label>Priority</label>
+                                    <select
+                                        value={editPriority}
+                                        onChange={(e) => setEditPriority(e.target.value)}
+                                        className="form-input"
+                                    >
+                                        {Object.entries(PRIORITY_CONFIG).map(([key, cfg]) => (
+                                            <option key={key} value={key}>{cfg.label}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                {/* Due Date (editable) */}
+                                <div className="sidebar-field">
+                                    <label>Due Date</label>
+                                    <input
+                                        type="date"
+                                        className="form-input"
+                                        value={editDueDate}
+                                        onChange={(e) => setEditDueDate(e.target.value)}
+                                    />
+                                </div>
+
+                                {/* Description (editable) */}
+                                <div className="sidebar-field">
+                                    <label>Description</label>
+                                    <textarea
+                                        className="form-input"
+                                        rows={4}
+                                        value={editDescription}
+                                        onChange={(e) => setEditDescription(e.target.value)}
+                                        placeholder="Add a description..."
+                                    />
+                                </div>
+
+                                {/* Save button */}
+                                {(editPriority !== selectedTask.priority ||
+                                    editDescription !== (selectedTask.description || '') ||
+                                    editDueDate !== (selectedTask.dueDate ? selectedTask.dueDate.split('T')[0] : '')) && (
+                                        <button
+                                            className="btn-primary"
+                                            onClick={handleSaveTaskEdits}
+                                            disabled={isSaving}
+                                            style={{ width: '100%', marginBottom: '0.75rem' }}
+                                        >
+                                            {isSaving ? (
+                                                <div className="spinner" style={{ width: 16, height: 16 }} />
+                                            ) : (
+                                                <>
+                                                    <Save size={14} />
+                                                    Save Changes
+                                                </>
+                                            )}
+                                        </button>
+                                    )}
+
+                                {/* Assignee */}
+                                <div className="sidebar-field">
+                                    <label>Assignee</label>
+                                    <span>{selectedTask.assignee?.name || 'Unassigned'}</span>
+                                </div>
+
+                                {/* Tags */}
+                                {selectedTask.tags.length > 0 && (
+                                    <div className="sidebar-field">
+                                        <label>Tags</label>
+                                        <div className="task-tags">
+                                            {selectedTask.tags.map((t) => (
+                                                <span key={t.tag.id} className="tag-badge">{t.tag.name}</span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Subtasks */}
+                                {selectedTask.subTasks.length > 0 && (
+                                    <div className="sidebar-field">
+                                        <label>Subtasks ({selectedTask.subTasks.filter(s => s.status === 'done').length}/{selectedTask.subTasks.length})</label>
+                                        {selectedTask.subTasks.map((sub) => (
+                                            <div key={sub.id} className="subtask-item">
+                                                <span className={sub.status === 'done' ? 'completed' : ''}>
+                                                    {sub.title}
                                                 </span>
                                             </div>
-                                        </div>
-                                    ))}
+                                        ))}
+                                    </div>
+                                )}
+
+                                {/* Delete */}
+                                <button
+                                    className="btn-danger"
+                                    onClick={() => handleDeleteTask(selectedTask.id)}
+                                    style={{ marginTop: 16, width: '100%' }}
+                                >
+                                    <Trash2 size={14} />
+                                    Delete Task
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Create Task Modal */}
+                {showCreateModal && (
+                    <div className="modal-overlay" onClick={() => setShowCreateModal(false)}>
+                        <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                            <div className="modal-header">
+                                <h3>Create Task</h3>
+                                <button className="btn-icon" onClick={() => setShowCreateModal(false)}>
+                                    <X size={18} />
+                                </button>
+                            </div>
+                            <div className="modal-body">
+                                <div className="form-group">
+                                    <label>Title</label>
+                                    <input
+                                        type="text"
+                                        placeholder="Task title"
+                                        value={newTaskTitle}
+                                        onChange={(e) => setNewTaskTitle(e.target.value)}
+                                        autoFocus
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label>Description</label>
+                                    <textarea
+                                        placeholder="Describe this task..."
+                                        value={newTaskDesc}
+                                        onChange={(e) => setNewTaskDesc(e.target.value)}
+                                        rows={3}
+                                    />
+                                </div>
+                                <div className="form-row">
+                                    <div className="form-group">
+                                        <label>Status</label>
+                                        <select
+                                            value={createStatus}
+                                            onChange={(e) => setCreateStatus(e.target.value)}
+                                        >
+                                            {Object.entries(STATUS_CONFIG).map(([key, cfg]) => (
+                                                <option key={key} value={key}>{cfg.label}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div className="form-group">
+                                        <label>Priority</label>
+                                        <select
+                                            value={newTaskPriority}
+                                            onChange={(e) => setNewTaskPriority(e.target.value)}
+                                        >
+                                            {Object.entries(PRIORITY_CONFIG).map(([key, cfg]) => (
+                                                <option key={key} value={key}>{cfg.label}</option>
+                                            ))}
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
-                        ))}
+                            <div className="modal-footer">
+                                <button className="btn-ghost" onClick={() => setShowCreateModal(false)}>
+                                    Cancel
+                                </button>
+                                <button
+                                    className="btn-primary"
+                                    onClick={handleCreateTask}
+                                    disabled={!newTaskTitle.trim()}
+                                >
+                                    Create Task
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 )}
             </main>
-
-            {/* Task Detail Sidebar */}
-            {selectedTask && (
-                <div className="task-sidebar-overlay" onClick={() => setSelectedTask(null)}>
-                    <div className="task-sidebar" onClick={(e) => e.stopPropagation()}>
-                        <div className="sidebar-header">
-                            <h3>{selectedTask.title}</h3>
-                            <button className="btn-icon" onClick={() => setSelectedTask(null)}>
-                                <X size={18} />
-                            </button>
-                        </div>
-
-                        <div className="sidebar-body">
-                            {/* Status */}
-                            <div className="sidebar-field">
-                                <label>Status</label>
-                                <select
-                                    value={selectedTask.status}
-                                    onChange={(e) => handleStatusChange(selectedTask, e.target.value)}
-                                >
-                                    {Object.entries(STATUS_CONFIG).map(([key, cfg]) => (
-                                        <option key={key} value={key}>
-                                            {cfg.label}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-
-                            {/* Priority */}
-                            <div className="sidebar-field">
-                                <label>Priority</label>
-                                <span
-                                    className="priority-badge"
-                                    style={{
-                                        color: PRIORITY_CONFIG[selectedTask.priority]?.color,
-                                        borderColor: PRIORITY_CONFIG[selectedTask.priority]?.color,
-                                    }}
-                                >
-                                    {PRIORITY_CONFIG[selectedTask.priority]?.label}
-                                </span>
-                            </div>
-
-                            {/* Assignee */}
-                            <div className="sidebar-field">
-                                <label>Assignee</label>
-                                <span>{selectedTask.assignee?.name || 'Unassigned'}</span>
-                            </div>
-
-                            {/* Description */}
-                            {selectedTask.description && (
-                                <div className="sidebar-field">
-                                    <label>Description</label>
-                                    <p className="text-muted">{selectedTask.description}</p>
-                                </div>
-                            )}
-
-                            {/* Due Date */}
-                            {selectedTask.dueDate && (
-                                <div className="sidebar-field">
-                                    <label>Due Date</label>
-                                    <span>{new Date(selectedTask.dueDate).toLocaleDateString()}</span>
-                                </div>
-                            )}
-
-                            {/* Tags */}
-                            {selectedTask.tags.length > 0 && (
-                                <div className="sidebar-field">
-                                    <label>Tags</label>
-                                    <div className="task-tags">
-                                        {selectedTask.tags.map((t) => (
-                                            <span key={t.tag.id} className="tag-badge">
-                                                {t.tag.name}
-                                            </span>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Subtasks */}
-                            {selectedTask.subTasks.length > 0 && (
-                                <div className="sidebar-field">
-                                    <label>Subtasks ({selectedTask.subTasks.filter(s => s.status === 'done').length}/{selectedTask.subTasks.length})</label>
-                                    {selectedTask.subTasks.map((sub) => (
-                                        <div key={sub.id} className="subtask-item">
-                                            <span className={sub.status === 'done' ? 'completed' : ''}>
-                                                {sub.title}
-                                            </span>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-
-                            {/* Delete */}
-                            <button
-                                className="btn-danger"
-                                onClick={() => handleDeleteTask(selectedTask.id)}
-                                style={{ marginTop: 24 }}
-                            >
-                                Delete Task
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* Create Task Modal */}
-            {showCreateModal && (
-                <div className="modal-overlay" onClick={() => setShowCreateModal(false)}>
-                    <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-                        <div className="modal-header">
-                            <h3>Create Task</h3>
-                            <button className="btn-icon" onClick={() => setShowCreateModal(false)}>
-                                <X size={18} />
-                            </button>
-                        </div>
-                        <div className="modal-body">
-                            <div className="form-group">
-                                <label>Title</label>
-                                <input
-                                    type="text"
-                                    placeholder="Task title"
-                                    value={newTaskTitle}
-                                    onChange={(e) => setNewTaskTitle(e.target.value)}
-                                    autoFocus
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label>Description</label>
-                                <textarea
-                                    placeholder="Describe this task..."
-                                    value={newTaskDesc}
-                                    onChange={(e) => setNewTaskDesc(e.target.value)}
-                                    rows={3}
-                                />
-                            </div>
-                            <div className="form-row">
-                                <div className="form-group">
-                                    <label>Status</label>
-                                    <select
-                                        value={createStatus}
-                                        onChange={(e) => setCreateStatus(e.target.value)}
-                                    >
-                                        {Object.entries(STATUS_CONFIG).map(([key, cfg]) => (
-                                            <option key={key} value={key}>
-                                                {cfg.label}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div className="form-group">
-                                    <label>Priority</label>
-                                    <select
-                                        value={newTaskPriority}
-                                        onChange={(e) => setNewTaskPriority(e.target.value)}
-                                    >
-                                        {Object.entries(PRIORITY_CONFIG).map(([key, cfg]) => (
-                                            <option key={key} value={key}>
-                                                {cfg.label}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="modal-footer">
-                            <button className="btn-ghost" onClick={() => setShowCreateModal(false)}>
-                                Cancel
-                            </button>
-                            <button
-                                className="btn-primary"
-                                onClick={handleCreateTask}
-                                disabled={!newTaskTitle.trim()}
-                            >
-                                Create Task
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
         </div>
     );
 }

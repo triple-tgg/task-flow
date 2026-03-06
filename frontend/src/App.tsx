@@ -5,9 +5,13 @@ import LoginPage from './pages/auth/LoginPage';
 import RegisterPage from './pages/auth/RegisterPage';
 import ForgotPasswordPage from './pages/auth/ForgotPasswordPage';
 import ResetPasswordPage from './pages/auth/ResetPasswordPage';
-import DashboardPage from './pages/DashboardPage';
+import ProjectsPage from './pages/ProjectsPage';
 import ProjectDetailPage from './pages/ProjectDetailPage';
-import AnalyticsDashboardPage from './pages/AnalyticsDashboardPage';
+import DashboardPage from './pages/DashboardPage';
+import CalendarPage from './pages/CalendarPage';
+import GanttPage from './pages/GanttPage';
+import WorkloadPage from './pages/WorkloadPage';
+import TasksPage from './pages/TasksPage';
 import './index.css';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -21,7 +25,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 function PublicRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuthStore();
   if (isAuthenticated) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/projects" replace />;
   }
   return <>{children}</>;
 }
@@ -101,14 +105,52 @@ export default function App() {
         <Route
           path="/analytics"
           element={
+            <Navigate to="/dashboard" replace />
+          }
+        />
+        <Route
+          path="/calendar"
+          element={
             <ProtectedRoute>
-              <AnalyticsDashboardPage />
+              <CalendarPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/gantt"
+          element={
+            <ProtectedRoute>
+              <GanttPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/workload"
+          element={
+            <ProtectedRoute>
+              <WorkloadPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/tasks"
+          element={
+            <ProtectedRoute>
+              <TasksPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/projects"
+          element={
+            <ProtectedRoute>
+              <ProjectsPage />
             </ProtectedRoute>
           }
         />
 
         {/* Default redirect */}
-        <Route path="*" element={<Navigate to="/login" replace />} />
+        <Route path="*" element={<Navigate to="/projects" replace />} />
       </Routes>
     </BrowserRouter>
   );
