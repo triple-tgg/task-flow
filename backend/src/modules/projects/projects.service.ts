@@ -1,0 +1,254 @@
+import {
+    Injectable,
+    NotFoundException,
+    ForbiddenException,
+    ConflictException,
+} from '@nestjs/common';
+import { PrismaService } from '../../prisma/prisma.service';
+
+@Injectable()
+export class ProjectsService {
+    constructor(private prisma: PrismaService) { }
+
+    // ─── Create ──────────────────────────────────────────
+
+    async create(userId: string, data: { name: string; description?: string }) {
+        return this.prisma.$transaction(async (tx) => {
+            const project = await tx.project.create({
+                data: {
+                    name: data.name,
+                    description: data.description,
+                },
+            });
+
+            // Creator becomes owner
+            await tx.projectMember.create({
+                data: {
+                    projectId: project.id,
+                    userId,
+                    role: 'owner',
+                },
+            });
+
+            return {
+                ...project,
+                members: [{ userId, role: 'owner' }],
+            };
+        });
+    }
+
+    // ─── Find All (user's projects) ──────────────────────
+
+    async findByUser(userId: string, page = 1, limit = 20) {
+        const skip = (page - 1) * limit;
+
+        const [memberships, total] = await Promise.all([
+            this.prisma.projectMember.findMany({
+                where: { userId, project: { deletedAt: null } },
+                skip,
+                take: limit,
+                include: {
+                    project: {
+                        select: {
+                            id: true,
+                            name: true,
+                            description: true,
+                            createdAt: true,
+                            updatedAt: true,
+                            _count: { select: { tasks: true, members: true } },
+                        },
+                    },
+                },
+                orderBy: { project: { updatedAt: 'desc' } },
+            }),
+            this.prisma.projectMember.count({
+                where: { userId, project: { deletedAt: null } },
+            }),
+        ]);
+
+        return {
+            data: memberships.map((m) => ({
+                ...m.project,
+                myRole: m.role,
+            })),
+            meta: { total, page, limit, totalPages: Math.ceil(total / limit) },
+        };
+    }
+
+    // ─── Find One ────────────────────────────────────────
+
+    async findById(projectId: string, userId: string) {
+        const membership = await this.getMembership(projectId, userId);
+
+        const project = await this.prisma.project.findUnique({
+            where: { id: projectId, deletedAt: null },
+            include: {
+                members: {
+                    include: {
+                        user: {
+                            select: { id: true, name: true, email: true },
+                        },
+                    },
+                },
+                _count: { select: { tasks: true } },
+            },
+        });
+
+        if (!project) {
+            throw new NotFoundException({
+                error: 'PROJECT_NOT_FOUND',
+                message: 'Project not found',
+            });
+        }
+
+        return { ...project, myRole: membership.role };
+    }
+
+    // ─── Update ──────────────────────────────────────────
+
+    async update(projectId: string, userId: string, data: { name?: string; description?: string }) {
+        await this.requireRole(projectId, userId, ['owner', 'editor']);
+
+        return this.prisma.project.update({
+            where: { id: projectId },
+            data,
+            select: {
+                id: true,
+                name: true,
+                description: true,
+                updatedAt: true,
+            },
+        });
+    }
+
+    // ─── Soft Delete ─────────────────────────────────────
+
+    async remove(projectId: string, userId: string) {
+        await this.requireRole(projectId, userId, ['owner']);
+
+        await this.prisma.project.update({
+            where: { id: projectId },
+            data: { deletedAt: new Date() },
+        });
+
+        return { message: 'Project deleted' };
+    }
+
+    // ─── Members ─────────────────────────────────────────
+
+    async addMember(projectId: string, requesterId: string, targetUserId: string, role = 'editor') {
+        await this.requireRole(projectId, requesterId, ['owner']);
+
+        // Check if user already a member
+        const existing = await this.prisma.projectMember.findUnique({
+            where: { projectId_userId: { projectId, userId: targetUserId } },
+        });
+        if (existing) {
+            throw new ConflictException({
+                error: 'MEMBER_EXISTS',
+                message: 'User is already a member of this project',
+            });
+        }
+
+        // Verify target user exists
+        const targetUser = await this.prisma.user.findUnique({
+            where: { id: targetUserId },
+        });
+        if (!targetUser) {
+            throw new NotFoundException({
+                error: 'USER_NOT_FOUND',
+                message: 'User not found',
+            });
+        }
+
+        return this.prisma.projectMember.create({
+            data: { projectId, userId: targetUserId, role },
+            include: {
+                user: { select: { id: true, name: true, email: true } },
+            },
+        });
+    }
+
+    async updateMemberRole(projectId: string, requesterId: string, targetUserId: string, role: string) {
+        await this.requireRole(projectId, requesterId, ['owner']);
+
+        // Can't change own role
+        if (requesterId === targetUserId) {
+            throw new ForbiddenException({
+                error: 'FORBIDDEN',
+                message: 'Cannot change your own role',
+            });
+        }
+
+        const membership = await this.prisma.projectMember.findUnique({
+            where: { projectId_userId: { projectId, userId: targetUserId } },
+        });
+        if (!membership) {
+            throw new NotFoundException({
+                error: 'MEMBER_NOT_FOUND',
+                message: 'Member not found in this project',
+            });
+        }
+
+        return this.prisma.projectMember.update({
+            where: { projectId_userId: { projectId, userId: targetUserId } },
+            data: { role },
+            include: {
+                user: { select: { id: true, name: true, email: true } },
+            },
+        });
+    }
+
+    async removeMember(projectId: string, requesterId: string, targetUserId: string) {
+        await this.requireRole(projectId, requesterId, ['owner']);
+
+        if (requesterId === targetUserId) {
+            throw new ForbiddenException({
+                error: 'FORBIDDEN',
+                message: 'Cannot remove yourself. Transfer ownership first.',
+            });
+        }
+
+        const membership = await this.prisma.projectMember.findUnique({
+            where: { projectId_userId: { projectId, userId: targetUserId } },
+        });
+        if (!membership) {
+            throw new NotFoundException({
+                error: 'MEMBER_NOT_FOUND',
+                message: 'Member not found in this project',
+            });
+        }
+
+        await this.prisma.projectMember.delete({
+            where: { projectId_userId: { projectId, userId: targetUserId } },
+        });
+
+        return { message: 'Member removed' };
+    }
+
+    // ─── Helpers ─────────────────────────────────────────
+
+    private async getMembership(projectId: string, userId: string) {
+        const membership = await this.prisma.projectMember.findUnique({
+            where: { projectId_userId: { projectId, userId } },
+        });
+        if (!membership) {
+            throw new ForbiddenException({
+                error: 'NOT_A_MEMBER',
+                message: 'You are not a member of this project',
+            });
+        }
+        return membership;
+    }
+
+    private async requireRole(projectId: string, userId: string, roles: string[]) {
+        const membership = await this.getMembership(projectId, userId);
+        if (!roles.includes(membership.role)) {
+            throw new ForbiddenException({
+                error: 'INSUFFICIENT_ROLE',
+                message: `This action requires one of: ${roles.join(', ')}`,
+            });
+        }
+        return membership;
+    }
+}

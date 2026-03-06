@@ -4,6 +4,11 @@ import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { PrismaModule } from './prisma';
 import { AuthModule, JwtAuthGuard, RolesGuard } from './modules/auth';
+import { UsersModule } from './modules/users';
+import { ProjectsModule } from './modules/projects';
+import { TasksModule } from './modules/tasks';
+import { CommentsModule } from './modules/comments';
+import { NotificationsModule } from './modules/notifications';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 
 @Module({
@@ -24,6 +29,11 @@ import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 
     // Feature modules
     AuthModule,
+    UsersModule,
+    ProjectsModule,
+    TasksModule,
+    CommentsModule,
+    NotificationsModule,
   ],
   providers: [
     // Global error format (TDD Section 6)

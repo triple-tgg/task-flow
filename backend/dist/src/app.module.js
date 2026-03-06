@@ -13,6 +13,11 @@ const core_1 = require("@nestjs/core");
 const throttler_1 = require("@nestjs/throttler");
 const prisma_1 = require("./prisma");
 const auth_1 = require("./modules/auth");
+const users_1 = require("./modules/users");
+const projects_1 = require("./modules/projects");
+const tasks_1 = require("./modules/tasks");
+const comments_1 = require("./modules/comments");
+const notifications_1 = require("./modules/notifications");
 const http_exception_filter_1 = require("./common/filters/http-exception.filter");
 let AppModule = class AppModule {
 };
@@ -29,6 +34,11 @@ exports.AppModule = AppModule = __decorate([
             ]),
             prisma_1.PrismaModule,
             auth_1.AuthModule,
+            users_1.UsersModule,
+            projects_1.ProjectsModule,
+            tasks_1.TasksModule,
+            comments_1.CommentsModule,
+            notifications_1.NotificationsModule,
         ],
         providers: [
             {
