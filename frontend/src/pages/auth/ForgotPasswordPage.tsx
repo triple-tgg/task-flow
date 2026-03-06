@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Mail, ArrowLeft, Check } from 'lucide-react';
+import { Mail, ArrowLeft } from 'lucide-react';
 import { authApi } from '../../api/auth';
 
 const forgotPasswordSchema = z.object({
