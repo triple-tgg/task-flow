@@ -56,13 +56,14 @@ export class AuthService {
         // Hash password
         const passwordHash = await bcrypt.hash(password, 12);
 
-        // Create user
+        // Create user (auto-verify in development mode)
+        const isDev = process.env.NODE_ENV === 'development';
         const user = await this.prisma.user.create({
             data: {
                 name,
                 email: email.toLowerCase(),
                 passwordHash,
-                emailVerified: false,
+                emailVerified: isDev,
             },
         });
 
@@ -177,7 +178,7 @@ export class AuthService {
             });
         }
 
-        if (!user.emailVerified) {
+        if (!user.emailVerified && process.env.NODE_ENV !== 'development') {
             throw new ForbiddenException({
                 error: 'EMAIL_NOT_VERIFIED',
                 message: 'Please verify your email before logging in',

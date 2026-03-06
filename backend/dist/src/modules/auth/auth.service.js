@@ -80,12 +80,13 @@ let AuthService = AuthService_1 = class AuthService {
             });
         }
         const passwordHash = await bcrypt.hash(password, 12);
+        const isDev = process.env.NODE_ENV === 'development';
         const user = await this.prisma.user.create({
             data: {
                 name,
                 email: email.toLowerCase(),
                 passwordHash,
-                emailVerified: false,
+                emailVerified: isDev,
             },
         });
         const verificationToken = crypto.randomUUID();
@@ -164,7 +165,7 @@ let AuthService = AuthService_1 = class AuthService {
                 message: 'Invalid email or password',
             });
         }
-        if (!user.emailVerified) {
+        if (!user.emailVerified && process.env.NODE_ENV !== 'development') {
             throw new common_1.ForbiddenException({
                 error: 'EMAIL_NOT_VERIFIED',
                 message: 'Please verify your email before logging in',
