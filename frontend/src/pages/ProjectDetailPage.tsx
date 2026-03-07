@@ -16,6 +16,7 @@ import {
     Square,
     Calendar,
     Link2,
+    Send,
 } from 'lucide-react';
 import {
     DndContext,
@@ -33,7 +34,7 @@ import {
     useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { tasksApi } from '../api/tasks';
+import { tasksApi, commentsApi } from '../api/tasks';
 import type { Task, KanbanBoard } from '../api/tasks';
 import { useProjectsStore } from '../stores/projectsStore';
 import Sidebar from '../components/Sidebar';
@@ -200,6 +201,9 @@ export default function ProjectDetailPage() {
     const [showShareModal, setShowShareModal] = useState(false);
     const [shareToken, setShareToken] = useState<string | null>(null);
     const [isProjectPublic, setIsProjectPublic] = useState(false);
+    const [comments, setComments] = useState<Array<{ id: string; content: string; createdAt: string; user: { id: string; name: string } }>>([]);
+    const [commentText, setCommentText] = useState('');
+    const [isSendingComment, setIsSendingComment] = useState(false);
 
     const sensors = useSensors(
         useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -229,6 +233,11 @@ export default function ProjectDetailPage() {
         setEditDescription(task.description || '');
         setEditDueDate(task.dueDate ? task.dueDate.split('T')[0] : '');
         setTagInput('');
+        setCommentText('');
+        // Fetch comments
+        commentsApi.list(task.id).then((res: { data: typeof comments }) => {
+            setComments(res.data || []);
+        }).catch(() => setComments([]));
     };
 
     const handleCreateTask = async () => {
@@ -651,6 +660,91 @@ export default function ProjectDetailPage() {
 
                                 {/* Attachments */}
                                 <TaskAttachments taskId={selectedTask.id} />
+
+                                {/* Comments Section */}
+                                <div className="ts-section">
+                                    <label className="ts-section-label">
+                                        <MessageSquare size={14} />
+                                        Comments ({comments.length})
+                                    </label>
+
+                                    {/* Comment Input */}
+                                    <div className="comment-input-row">
+                                        <input
+                                            className="comment-input"
+                                            placeholder="Write a comment..."
+                                            value={commentText}
+                                            onChange={(e) => setCommentText(e.target.value)}
+                                            onKeyDown={async (e) => {
+                                                if (e.key === 'Enter' && commentText.trim() && !isSendingComment) {
+                                                    e.preventDefault();
+                                                    setIsSendingComment(true);
+                                                    try {
+                                                        await commentsApi.create(selectedTask.id, commentText.trim());
+                                                        setCommentText('');
+                                                        const res = await commentsApi.list(selectedTask.id);
+                                                        setComments(res.data || []);
+                                                    } catch (err) {
+                                                        console.error('Failed to post comment', err);
+                                                    } finally {
+                                                        setIsSendingComment(false);
+                                                    }
+                                                }
+                                            }}
+                                        />
+                                        <button
+                                            className="comment-send-btn"
+                                            disabled={!commentText.trim() || isSendingComment}
+                                            onClick={async () => {
+                                                if (!commentText.trim() || isSendingComment) return;
+                                                setIsSendingComment(true);
+                                                try {
+                                                    await commentsApi.create(selectedTask.id, commentText.trim());
+                                                    setCommentText('');
+                                                    const res = await commentsApi.list(selectedTask.id);
+                                                    setComments(res.data || []);
+                                                } catch (err) {
+                                                    console.error('Failed to post comment', err);
+                                                } finally {
+                                                    setIsSendingComment(false);
+                                                }
+                                            }}
+                                        >
+                                            <Send size={14} />
+                                        </button>
+                                    </div>
+
+                                    {/* Comment List */}
+                                    {comments.length > 0 && (
+                                        <div className="comment-list">
+                                            {comments.map((c) => (
+                                                <div key={c.id} className="comment-item">
+                                                    <div className="comment-header">
+                                                        <div className="comment-avatar">{c.user.name.charAt(0).toUpperCase()}</div>
+                                                        <div className="comment-meta">
+                                                            <span className="comment-author">{c.user.name}</span>
+                                                            <span className="comment-date">{new Date(c.createdAt).toLocaleDateString()}</span>
+                                                        </div>
+                                                        <button
+                                                            className="comment-delete-btn"
+                                                            onClick={async () => {
+                                                                try {
+                                                                    await commentsApi.remove(selectedTask.id, c.id);
+                                                                    setComments(prev => prev.filter(x => x.id !== c.id));
+                                                                } catch (err) {
+                                                                    console.error('Failed to delete comment', err);
+                                                                }
+                                                            }}
+                                                        >
+                                                            <X size={12} />
+                                                        </button>
+                                                    </div>
+                                                    <p className="comment-content">{c.content}</p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
 
                                 {/* Action Buttons Row */}
                                 <div className="ts-action-row">
