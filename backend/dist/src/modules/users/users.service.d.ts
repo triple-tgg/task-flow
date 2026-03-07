@@ -4,8 +4,8 @@ export declare class UsersService {
     constructor(prisma: PrismaService);
     findById(id: string): Promise<{
         id: string;
-        email: string;
         name: string;
+        email: string;
         emailVerified: boolean;
         role: string;
         createdAt: Date;
@@ -15,8 +15,8 @@ export declare class UsersService {
         name?: string;
     }): Promise<{
         id: string;
-        email: string;
         name: string;
+        email: string;
         role: string;
     }>;
     changePassword(userId: string, currentPassword: string, newPassword: string): Promise<{
@@ -25,8 +25,8 @@ export declare class UsersService {
     findAll(page?: number, limit?: number): Promise<{
         data: {
             id: string;
-            email: string;
             name: string;
+            email: string;
             emailVerified: boolean;
             role: string;
             isSuspended: boolean;

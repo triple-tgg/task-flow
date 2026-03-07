@@ -62,8 +62,8 @@ export declare class AuthService {
     hashToken(token: string): string;
     findUserById(id: string): Promise<{
         id: string;
-        email: string;
         name: string;
+        email: string;
         emailVerified: boolean;
         role: string;
         isSuspended: boolean;

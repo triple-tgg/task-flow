@@ -48,8 +48,8 @@ export declare class ProjectsController {
         members: ({
             user: {
                 id: string;
-                email: string;
                 name: string;
+                email: string;
             };
         } & {
             id: string;
@@ -77,8 +77,8 @@ export declare class ProjectsController {
     addMember(projectId: string, requesterId: string, dto: AddMemberDto): Promise<{
         user: {
             id: string;
-            email: string;
             name: string;
+            email: string;
         };
     } & {
         id: string;
@@ -90,8 +90,8 @@ export declare class ProjectsController {
     updateMemberRole(projectId: string, targetUserId: string, requesterId: string, dto: UpdateMemberRoleDto): Promise<{
         user: {
             id: string;
-            email: string;
             name: string;
+            email: string;
         };
     } & {
         id: string;

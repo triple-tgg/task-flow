@@ -22,6 +22,10 @@ const search_1 = require("./modules/search");
 const activity_log_1 = require("./modules/activity-log");
 const analytics_1 = require("./modules/analytics");
 const http_exception_filter_1 = require("./common/filters/http-exception.filter");
+const serve_static_1 = require("@nestjs/serve-static");
+const path_1 = require("path");
+const storage_module_1 = require("./modules/storage/storage.module");
+const attachments_module_1 = require("./modules/attachments/attachments.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -45,6 +49,12 @@ exports.AppModule = AppModule = __decorate([
             search_1.SearchModule,
             activity_log_1.ActivityLogModule,
             analytics_1.AnalyticsModule,
+            storage_module_1.StorageModule,
+            attachments_module_1.AttachmentsModule,
+            serve_static_1.ServeStaticModule.forRoot({
+                rootPath: (0, path_1.join)(process.cwd(), 'uploads'),
+                serveRoot: '/uploads',
+            }),
         ],
         providers: [
             {

@@ -5,8 +5,8 @@ export declare class CommentsService {
     create(taskId: string, userId: string, content: string): Promise<{
         user: {
             id: string;
-            email: string;
             name: string;
+            email: string;
         };
     } & {
         id: string;
@@ -21,8 +21,8 @@ export declare class CommentsService {
         data: ({
             user: {
                 id: string;
-                email: string;
                 name: string;
+                email: string;
             };
         } & {
             id: string;
@@ -43,8 +43,8 @@ export declare class CommentsService {
     update(commentId: string, userId: string, content: string): Promise<{
         user: {
             id: string;
-            email: string;
             name: string;
+            email: string;
         };
     } & {
         id: string;

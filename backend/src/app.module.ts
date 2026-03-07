@@ -13,6 +13,10 @@ import { SearchModule } from './modules/search';
 import { ActivityLogModule } from './modules/activity-log';
 import { AnalyticsModule } from './modules/analytics';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
+import { StorageModule } from './modules/storage/storage.module';
+import { AttachmentsModule } from './modules/attachments/attachments.module';
 
 @Module({
   imports: [
@@ -40,6 +44,16 @@ import { HttpExceptionFilter } from './common/filters/http-exception.filter';
     SearchModule,
     ActivityLogModule,
     AnalyticsModule,
+
+    // File storage support
+    StorageModule,
+    AttachmentsModule,
+
+    // Serve uploaded files statically at /uploads
+    ServeStaticModule.forRoot({
+      rootPath: join(process.cwd(), 'uploads'),
+      serveRoot: '/uploads',
+    }),
   ],
   providers: [
     // Global error format (TDD Section 6)

@@ -20,13 +20,13 @@ export declare class TasksController {
         })[];
         creator: {
             id: string;
-            email: string;
             name: string;
+            email: string;
         };
         assignee: {
             id: string;
-            email: string;
             name: string;
+            email: string;
         } | null;
         subTasks: {
             id: string;
@@ -71,13 +71,13 @@ export declare class TasksController {
             })[];
             creator: {
                 id: string;
-                email: string;
                 name: string;
+                email: string;
             };
             assignee: {
                 id: string;
-                email: string;
                 name: string;
+                email: string;
             } | null;
             subTasks: {
                 id: string;
@@ -128,13 +128,13 @@ export declare class TasksController {
         })[];
         creator: {
             id: string;
-            email: string;
             name: string;
+            email: string;
         };
         assignee: {
             id: string;
-            email: string;
             name: string;
+            email: string;
         } | null;
         subTasks: {
             id: string;
@@ -178,13 +178,13 @@ export declare class TasksController {
         })[];
         creator: {
             id: string;
-            email: string;
             name: string;
+            email: string;
         };
         assignee: {
             id: string;
-            email: string;
             name: string;
+            email: string;
         } | null;
         subTasks: {
             id: string;
@@ -228,13 +228,13 @@ export declare class TasksController {
         })[];
         creator: {
             id: string;
-            email: string;
             name: string;
+            email: string;
         };
         assignee: {
             id: string;
-            email: string;
             name: string;
+            email: string;
         } | null;
         subTasks: {
             id: string;
@@ -278,13 +278,13 @@ export declare class TasksController {
         })[];
         creator: {
             id: string;
-            email: string;
             name: string;
+            email: string;
         };
         assignee: {
             id: string;
-            email: string;
             name: string;
+            email: string;
         } | null;
         subTasks: {
             id: string;
@@ -328,13 +328,13 @@ export declare class TasksController {
         })[];
         creator: {
             id: string;
-            email: string;
             name: string;
+            email: string;
         };
         assignee: {
             id: string;
-            email: string;
             name: string;
+            email: string;
         } | null;
         subTasks: {
             id: string;

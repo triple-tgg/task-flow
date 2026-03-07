@@ -5,8 +5,8 @@ export declare class UsersController {
     constructor(usersService: UsersService);
     getProfile(userId: string): Promise<{
         id: string;
-        email: string;
         name: string;
+        email: string;
         emailVerified: boolean;
         role: string;
         createdAt: Date;
@@ -14,8 +14,8 @@ export declare class UsersController {
     }>;
     updateProfile(userId: string, dto: UpdateProfileDto): Promise<{
         id: string;
-        email: string;
         name: string;
+        email: string;
         role: string;
     }>;
     changePassword(userId: string, dto: ChangePasswordDto): Promise<{
@@ -24,8 +24,8 @@ export declare class UsersController {
     findAll(page?: string, limit?: string): Promise<{
         data: {
             id: string;
-            email: string;
             name: string;
+            email: string;
             emailVerified: boolean;
             role: string;
             isSuspended: boolean;
@@ -40,8 +40,8 @@ export declare class UsersController {
     }>;
     findOne(id: string): Promise<{
         id: string;
-        email: string;
         name: string;
+        email: string;
         emailVerified: boolean;
         role: string;
         createdAt: Date;
