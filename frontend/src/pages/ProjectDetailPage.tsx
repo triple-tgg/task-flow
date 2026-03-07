@@ -204,8 +204,9 @@ export default function ProjectDetailPage() {
     const [comments, setComments] = useState<Array<{ id: string; content: string; createdAt: string; user: { id: string; name: string } }>>([]);
     const [commentText, setCommentText] = useState('');
     const [isSendingComment, setIsSendingComment] = useState(false);
-    const [sidebarTab, setSidebarTab] = useState<'description' | 'comments' | 'activities'>('description');
+    const [sidebarTab, setSidebarTab] = useState<'detail' | 'description' | 'comments' | 'activities'>('detail');
     const [isExpanded, setIsExpanded] = useState(false);
+    const [todoInput, setTodoInput] = useState('');
 
     const sensors = useSensors(
         useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -507,174 +508,14 @@ export default function ProjectDetailPage() {
 
                             <div className="ts-body">
 
-                                {/* Property Rows */}
-                                <div className="ts-prop-rows">
-                                    <div className="ts-prop-row">
-                                        <span className="ts-prop-label">Priority</span>
-                                        <div className="ts-prop-value">
-                                            <select
-                                                className="ts-inline-select"
-                                                value={editPriority}
-                                                onChange={(e) => setEditPriority(e.target.value)}
-                                            >
-                                                {Object.entries(PRIORITY_CONFIG).map(([key, cfg]) => (
-                                                    <option key={key} value={key}>{cfg.label}</option>
-                                                ))}
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div className="ts-prop-row" style={{ alignItems: 'flex-start' }}>
-                                        <span className="ts-prop-label">Assignees</span>
-                                        <div className="ts-prop-value" style={{ position: 'relative' }}>
-                                            <div className="ts-assignees-chips">
-                                                {(selectedTask.assignees || []).map((a: any) => (
-                                                    <div key={a.user.id} className="ts-assignee-chip">
-                                                        <div className="ts-avatar-sm">{a.user.name.charAt(0).toUpperCase()}</div>
-                                                        <span>{a.user.name}</span>
-                                                        <button
-                                                            className="ts-chip-remove"
-                                                            onClick={async () => {
-                                                                if (!projectId) return;
-                                                                await tasksApi.removeAssignee(selectedTask.id, projectId, a.user.id);
-                                                                setSelectedTask({
-                                                                    ...selectedTask,
-                                                                    assignees: selectedTask.assignees.filter((x: any) => x.user.id !== a.user.id),
-                                                                });
-                                                                await fetchBoard();
-                                                            }}
-                                                        >
-                                                            <X size={12} />
-                                                        </button>
-                                                    </div>
-                                                ))}
-                                                <button
-                                                    className="ts-add-assignee-btn"
-                                                    onClick={() => setShowAssigneeDropdown(!showAssigneeDropdown)}
-                                                >
-                                                    <UserPlus size={14} />
-                                                </button>
-                                            </div>
-                                            {showAssigneeDropdown && (
-                                                <div className="ts-assignee-dropdown">
-                                                    {currentProject?.members
-                                                        ?.filter((m: any) => !(selectedTask.assignees || []).some((a: any) => a.user.id === m.user.id))
-                                                        .map((m: any) => (
-                                                            <div
-                                                                key={m.user.id}
-                                                                className="ts-assignee-option"
-                                                                onClick={async () => {
-                                                                    if (!projectId) return;
-                                                                    await tasksApi.addAssignee(selectedTask.id, projectId, m.user.id);
-                                                                    setSelectedTask({
-                                                                        ...selectedTask,
-                                                                        assignees: [...(selectedTask.assignees || []), { user: m.user }],
-                                                                    });
-                                                                    setShowAssigneeDropdown(false);
-                                                                    await fetchBoard();
-                                                                }}
-                                                            >
-                                                                <div className="ts-avatar-sm">{m.user.name.charAt(0).toUpperCase()}</div>
-                                                                <span>{m.user.name}</span>
-                                                            </div>
-                                                        ))}
-                                                    {currentProject?.members
-                                                        ?.filter((m: any) => !(selectedTask.assignees || []).some((a: any) => a.user.id === m.user.id))
-                                                        .length === 0 && (
-                                                            <div className="ts-assignee-option" style={{ opacity: 0.5, pointerEvents: 'none' }}>No more members</div>
-                                                        )}
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                    <div className="ts-prop-row">
-                                        <span className="ts-prop-label">Due date</span>
-                                        <div className="ts-prop-value">
-                                            <input
-                                                type="date"
-                                                className="ts-inline-date"
-                                                value={editDueDate}
-                                                onChange={(e) => setEditDueDate(e.target.value)}
-                                            />
-                                        </div>
-                                    </div>
-                                    <div className="ts-prop-row">
-                                        <span className="ts-prop-label">Status</span>
-                                        <div className="ts-prop-value">
-                                            <select
-                                                className="ts-inline-select"
-                                                value={selectedTask.status}
-                                                onChange={(e) => handleStatusChange(selectedTask, e.target.value)}
-                                            >
-                                                {Object.entries(STATUS_CONFIG).map(([key, cfg]) => (
-                                                    <option key={key} value={key}>{cfg.label}</option>
-                                                ))}
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div className="ts-prop-row">
-                                        <span className="ts-prop-label">Tags</span>
-                                        <div className="ts-prop-value">
-                                            <div className="ts-tags-inline">
-                                                {selectedTask.tags.map((t) => (
-                                                    <span key={t.tag.id} className="ts-tag">
-                                                        {t.tag.name}
-                                                        <button
-                                                            className="ts-tag-remove"
-                                                            onClick={async () => {
-                                                                if (!projectId) return;
-                                                                const newTags = selectedTask.tags
-                                                                    .filter(tag => tag.tag.id !== t.tag.id)
-                                                                    .map(tag => tag.tag.name);
-                                                                try {
-                                                                    const updated = await tasksApi.updateTags(selectedTask.id, projectId, newTags);
-                                                                    setSelectedTask(updated);
-                                                                    await fetchBoard();
-                                                                } catch (err) {
-                                                                    console.error('Failed to remove tag', err);
-                                                                }
-                                                            }}
-                                                        >
-                                                            <X size={10} />
-                                                        </button>
-                                                    </span>
-                                                ))}
-                                                <input
-                                                    className="ts-tag-input-inline"
-                                                    placeholder="Add more"
-                                                    value={tagInput}
-                                                    onChange={(e) => setTagInput(e.target.value)}
-                                                    onKeyDown={async (e) => {
-                                                        if (e.key === 'Enter' && tagInput.trim() && projectId) {
-                                                            e.preventDefault();
-                                                            const currentTags = selectedTask.tags.map(t => t.tag.name);
-                                                            if (currentTags.includes(tagInput.trim())) { setTagInput(''); return; }
-                                                            try {
-                                                                const updated = await tasksApi.updateTags(
-                                                                    selectedTask.id, projectId, [...currentTags, tagInput.trim()]
-                                                                );
-                                                                setSelectedTask(updated);
-                                                                setTagInput('');
-                                                                await fetchBoard();
-                                                            } catch (err) { console.error('Failed to add tag', err); }
-                                                        }
-                                                    }}
-                                                />
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className="ts-prop-row">
-                                        <span className="ts-prop-label">Created by</span>
-                                        <div className="ts-prop-value">
-                                            <div className="ts-assignee-chip">
-                                                <div className="ts-avatar-sm">{selectedTask.creator.name.charAt(0).toUpperCase()}</div>
-                                                <span>{selectedTask.creator.name}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
                                 {/* Tab Navigation */}
                                 <div className="ts-tab-nav">
+                                    <button
+                                        className={`ts-tab ${sidebarTab === 'detail' ? 'active' : ''}`}
+                                        onClick={() => setSidebarTab('detail')}
+                                    >
+                                        Detail
+                                    </button>
                                     <button
                                         className={`ts-tab ${sidebarTab === 'description' ? 'active' : ''}`}
                                         onClick={() => setSidebarTab('description')}
@@ -697,12 +538,289 @@ export default function ProjectDetailPage() {
 
                                 {/* Tab Content */}
                                 <div className="ts-tab-content">
+                                    {sidebarTab === 'detail' && (
+                                        <>
+                                            <div className="ts-prop-rows">
+                                                <div className="ts-prop-row">
+                                                    <span className="ts-prop-label">Priority</span>
+                                                    <div className="ts-prop-value">
+                                                        <select
+                                                            className="ts-inline-select"
+                                                            value={editPriority}
+                                                            onChange={(e) => setEditPriority(e.target.value)}
+                                                        >
+                                                            {Object.entries(PRIORITY_CONFIG).map(([key, cfg]) => (
+                                                                <option key={key} value={key}>{cfg.label}</option>
+                                                            ))}
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                <div className="ts-prop-row" style={{ alignItems: 'flex-start' }}>
+                                                    <span className="ts-prop-label">Assignees</span>
+                                                    <div className="ts-prop-value" style={{ position: 'relative' }}>
+                                                        <div className="ts-assignees-chips">
+                                                            {(selectedTask.assignees || []).map((a: any) => (
+                                                                <div key={a.user.id} className="ts-assignee-chip">
+                                                                    <div className="ts-avatar-sm">{a.user.name.charAt(0).toUpperCase()}</div>
+                                                                    <span>{a.user.name}</span>
+                                                                    <button
+                                                                        className="ts-chip-remove"
+                                                                        onClick={async () => {
+                                                                            if (!projectId) return;
+                                                                            await tasksApi.removeAssignee(selectedTask.id, projectId, a.user.id);
+                                                                            setSelectedTask({
+                                                                                ...selectedTask,
+                                                                                assignees: selectedTask.assignees.filter((x: any) => x.user.id !== a.user.id),
+                                                                            });
+                                                                            await fetchBoard();
+                                                                        }}
+                                                                    >
+                                                                        <X size={12} />
+                                                                    </button>
+                                                                </div>
+                                                            ))}
+                                                            <button
+                                                                className="ts-add-assignee-btn"
+                                                                onClick={() => setShowAssigneeDropdown(!showAssigneeDropdown)}
+                                                            >
+                                                                <UserPlus size={14} />
+                                                            </button>
+                                                        </div>
+                                                        {showAssigneeDropdown && (
+                                                            <div className="ts-assignee-dropdown">
+                                                                {currentProject?.members
+                                                                    ?.filter((m: any) => !(selectedTask.assignees || []).some((a: any) => a.user.id === m.user.id))
+                                                                    .map((m: any) => (
+                                                                        <div
+                                                                            key={m.user.id}
+                                                                            className="ts-assignee-option"
+                                                                            onClick={async () => {
+                                                                                if (!projectId) return;
+                                                                                await tasksApi.addAssignee(selectedTask.id, projectId, m.user.id);
+                                                                                setSelectedTask({
+                                                                                    ...selectedTask,
+                                                                                    assignees: [...(selectedTask.assignees || []), { user: m.user }],
+                                                                                });
+                                                                                setShowAssigneeDropdown(false);
+                                                                                await fetchBoard();
+                                                                            }}
+                                                                        >
+                                                                            <div className="ts-avatar-sm">{m.user.name.charAt(0).toUpperCase()}</div>
+                                                                            <span>{m.user.name}</span>
+                                                                        </div>
+                                                                    ))}
+                                                                {currentProject?.members
+                                                                    ?.filter((m: any) => !(selectedTask.assignees || []).some((a: any) => a.user.id === m.user.id))
+                                                                    .length === 0 && (
+                                                                        <div className="ts-assignee-option" style={{ opacity: 0.5, pointerEvents: 'none' }}>No more members</div>
+                                                                    )}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                <div className="ts-prop-row">
+                                                    <span className="ts-prop-label">Due date</span>
+                                                    <div className="ts-prop-value">
+                                                        <input
+                                                            type="date"
+                                                            className="ts-inline-date"
+                                                            value={editDueDate}
+                                                            onChange={(e) => setEditDueDate(e.target.value)}
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <div className="ts-prop-row">
+                                                    <span className="ts-prop-label">Status</span>
+                                                    <div className="ts-prop-value">
+                                                        <select
+                                                            className="ts-inline-select"
+                                                            value={selectedTask.status}
+                                                            onChange={(e) => handleStatusChange(selectedTask, e.target.value)}
+                                                        >
+                                                            {Object.entries(STATUS_CONFIG).map(([key, cfg]) => (
+                                                                <option key={key} value={key}>{cfg.label}</option>
+                                                            ))}
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                <div className="ts-prop-row">
+                                                    <span className="ts-prop-label">Tags</span>
+                                                    <div className="ts-prop-value">
+                                                        <div className="ts-tags-inline">
+                                                            {selectedTask.tags.map((t) => (
+                                                                <span key={t.tag.id} className="ts-tag">
+                                                                    {t.tag.name}
+                                                                    <button
+                                                                        className="ts-tag-remove"
+                                                                        onClick={async () => {
+                                                                            if (!projectId) return;
+                                                                            const newTags = selectedTask.tags
+                                                                                .filter(tag => tag.tag.id !== t.tag.id)
+                                                                                .map(tag => tag.tag.name);
+                                                                            try {
+                                                                                const updated = await tasksApi.updateTags(selectedTask.id, projectId, newTags);
+                                                                                setSelectedTask(updated);
+                                                                                await fetchBoard();
+                                                                            } catch (err) {
+                                                                                console.error('Failed to remove tag', err);
+                                                                            }
+                                                                        }}
+                                                                    >
+                                                                        <X size={10} />
+                                                                    </button>
+                                                                </span>
+                                                            ))}
+                                                            <input
+                                                                className="ts-tag-input-inline"
+                                                                placeholder="Add more"
+                                                                value={tagInput}
+                                                                onChange={(e) => setTagInput(e.target.value)}
+                                                                onKeyDown={async (e) => {
+                                                                    if (e.key === 'Enter' && tagInput.trim() && projectId) {
+                                                                        e.preventDefault();
+                                                                        const currentTags = selectedTask.tags.map(t => t.tag.name);
+                                                                        if (currentTags.includes(tagInput.trim())) { setTagInput(''); return; }
+                                                                        try {
+                                                                            const updated = await tasksApi.updateTags(
+                                                                                selectedTask.id, projectId, [...currentTags, tagInput.trim()]
+                                                                            );
+                                                                            setSelectedTask(updated);
+                                                                            setTagInput('');
+                                                                            await fetchBoard();
+                                                                        } catch (err) { console.error('Failed to add tag', err); }
+                                                                    }
+                                                                }}
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div className="ts-prop-row">
+                                                    <span className="ts-prop-label">Created by</span>
+                                                    <div className="ts-prop-value">
+                                                        <div className="ts-assignee-chip">
+                                                            <div className="ts-avatar-sm">{selectedTask.creator.name.charAt(0).toUpperCase()}</div>
+                                                            <span>{selectedTask.creator.name}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            {/* Progress Bar */}
+                                            {selectedTask.subTasks.length > 0 && (
+                                                <div className="ts-prop-row" style={{ alignItems: 'flex-start', borderBottom: 'none' }}>
+                                                    <span className="ts-prop-label">Subtasks</span>
+                                                    <div className="ts-prop-value">
+                                                        <div className="ts-progress-container">
+                                                            <div className="ts-progress-bar">
+                                                                <div
+                                                                    className="ts-progress-fill"
+                                                                    style={{ width: `${Math.round((selectedTask.subTasks.filter(s => s.status === 'done').length / selectedTask.subTasks.length) * 100)}%` }}
+                                                                />
+                                                            </div>
+                                                            <span className="ts-progress-text">
+                                                                {selectedTask.subTasks.filter(s => s.status === 'done').length}/{selectedTask.subTasks.length} done
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
+                                            {/* Attachments */}
+                                            <div className="ts-todo-section" style={{ borderTop: 'none' }}>
+                                                <TaskAttachments taskId={selectedTask.id} />
+                                            </div>
+                                        </>
+                                    )}
                                     {sidebarTab === 'description' && (
-                                        <RichTextEditor
-                                            content={editDescription}
-                                            onChange={(html) => setEditDescription(html)}
-                                            placeholder="Add a description..."
-                                        />
+                                        <div className="ts-description-tab">
+                                            <RichTextEditor
+                                                content={editDescription}
+                                                onChange={(html) => setEditDescription(html)}
+                                                placeholder="Add a description..."
+                                            />
+
+                                            {/* Subtasks Checklist */}
+                                            <div className="ts-todo-section">
+                                                <div className="ts-todo-header">
+                                                    <h4 className="ts-todo-title">Subtasks ({selectedTask.subTasks.filter(s => s.status === 'done').length}/{selectedTask.subTasks.length})</h4>
+                                                </div>
+
+                                                <div className="ts-todo-list">
+                                                    {selectedTask.subTasks.map((sub) => (
+                                                        <div key={sub.id} className={`ts-todo-item ${sub.status === 'done' ? 'completed' : ''}`}>
+                                                            <button
+                                                                className={`ts-todo-check ${sub.status === 'done' ? 'checked' : ''}`}
+                                                                onClick={async () => {
+                                                                    if (!projectId) return;
+                                                                    const newStatus = sub.status === 'done' ? 'todo' : 'done';
+                                                                    await tasksApi.update(sub.id, projectId, { status: newStatus });
+                                                                    setSelectedTask({
+                                                                        ...selectedTask,
+                                                                        subTasks: selectedTask.subTasks.map(s =>
+                                                                            s.id === sub.id ? { ...s, status: newStatus } : s
+                                                                        ),
+                                                                    });
+                                                                }}
+                                                            >
+                                                                {sub.status === 'done' && (
+                                                                    <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
+                                                                        <path d="M1 4L3.5 6.5L9 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                                                    </svg>
+                                                                )}
+                                                            </button>
+                                                            <span className="ts-todo-text">{sub.title}</span>
+                                                            <span className={`ts-todo-priority ${sub.priority}`}>
+                                                                {PRIORITY_CONFIG[sub.priority as keyof typeof PRIORITY_CONFIG]?.label || sub.priority}
+                                                            </span>
+                                                            <button
+                                                                className="ts-todo-delete"
+                                                                onClick={async () => {
+                                                                    if (!projectId) return;
+                                                                    await tasksApi.remove(sub.id, projectId);
+                                                                    setSelectedTask({
+                                                                        ...selectedTask,
+                                                                        subTasks: selectedTask.subTasks.filter(s => s.id !== sub.id),
+                                                                    });
+                                                                }}
+                                                            >
+                                                                <Trash2 size={12} />
+                                                            </button>
+                                                        </div>
+                                                    ))}
+                                                </div>
+
+                                                <div className="ts-todo-add">
+                                                    <input
+                                                        className="ts-todo-input"
+                                                        placeholder="Add a todo item..."
+                                                        value={todoInput}
+                                                        onChange={(e) => setTodoInput(e.target.value)}
+                                                        onKeyDown={async (e) => {
+                                                            if (e.key === 'Enter' && todoInput.trim() && projectId) {
+                                                                e.preventDefault();
+                                                                try {
+                                                                    const created = await tasksApi.create(projectId, {
+                                                                        title: todoInput.trim(),
+                                                                        parentId: selectedTask.id,
+                                                                    } as any);
+                                                                    setSelectedTask({
+                                                                        ...selectedTask,
+                                                                        subTasks: [...selectedTask.subTasks, {
+                                                                            id: created.id,
+                                                                            title: created.title,
+                                                                            status: created.status,
+                                                                            priority: created.priority,
+                                                                        }],
+                                                                    });
+                                                                    setTodoInput('');
+                                                                } catch (err) {
+                                                                    console.error('Failed to add todo', err);
+                                                                }
+                                                            }
+                                                        }}
+                                                    />
+                                                    <Plus size={14} className="ts-todo-add-icon" />
+                                                </div>
+                                            </div>
+                                        </div>
                                     )}
 
                                     {sidebarTab === 'comments' && (
@@ -780,27 +898,7 @@ export default function ProjectDetailPage() {
                                     )}
                                 </div>
 
-                                {/* Subtasks */}
-                                {selectedTask.subTasks.length > 0 && (
-                                    <div className="ts-bottom-section">
-                                        <label className="ts-bottom-label">
-                                            Subtasks ({selectedTask.subTasks.filter(s => s.status === 'done').length}/{selectedTask.subTasks.length})
-                                        </label>
-                                        <div className="ts-subtasks">
-                                            {selectedTask.subTasks.map((sub) => (
-                                                <div key={sub.id} className={`ts-subtask ${sub.status === 'done' ? 'completed' : ''}`}>
-                                                    <div className={`ts-check ${sub.status === 'done' ? 'checked' : ''}`} />
-                                                    <span>{sub.title}</span>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
 
-                                {/* Attachments */}
-                                <div className="ts-bottom-section">
-                                    <TaskAttachments taskId={selectedTask.id} />
-                                </div>
                             </div>
 
                             {/* Action Footer - outside scrollable body */}
@@ -833,94 +931,99 @@ export default function ProjectDetailPage() {
                             </div>
                         </div>
                     </div>
-                )}
+                )
+                }
 
                 {/* Create Task Modal */}
-                {showCreateModal && (
-                    <div className="modal-overlay" onClick={() => setShowCreateModal(false)}>
-                        <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-                            <div className="modal-header">
-                                <h3>Create Task</h3>
-                                <button className="btn-icon" onClick={() => setShowCreateModal(false)}>
-                                    <X size={18} />
-                                </button>
-                            </div>
-                            <div className="modal-body">
-                                <div className="form-group">
-                                    <label>Title</label>
-                                    <input
-                                        type="text"
-                                        placeholder="Task title"
-                                        value={newTaskTitle}
-                                        onChange={(e) => setNewTaskTitle(e.target.value)}
-                                        autoFocus
-                                    />
+                {
+                    showCreateModal && (
+                        <div className="modal-overlay" onClick={() => setShowCreateModal(false)}>
+                            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                                <div className="modal-header">
+                                    <h3>Create Task</h3>
+                                    <button className="btn-icon" onClick={() => setShowCreateModal(false)}>
+                                        <X size={18} />
+                                    </button>
                                 </div>
-                                <div className="form-group">
-                                    <label>Description</label>
-                                    <textarea
-                                        placeholder="Describe this task..."
-                                        value={newTaskDesc}
-                                        onChange={(e) => setNewTaskDesc(e.target.value)}
-                                        rows={3}
-                                    />
-                                </div>
-                                <div className="form-row">
+                                <div className="modal-body">
                                     <div className="form-group">
-                                        <label>Status</label>
-                                        <select
-                                            value={createStatus}
-                                            onChange={(e) => setCreateStatus(e.target.value)}
-                                        >
-                                            {Object.entries(STATUS_CONFIG).map(([key, cfg]) => (
-                                                <option key={key} value={key}>{cfg.label}</option>
-                                            ))}
-                                        </select>
+                                        <label>Title</label>
+                                        <input
+                                            type="text"
+                                            placeholder="Task title"
+                                            value={newTaskTitle}
+                                            onChange={(e) => setNewTaskTitle(e.target.value)}
+                                            autoFocus
+                                        />
                                     </div>
                                     <div className="form-group">
-                                        <label>Priority</label>
-                                        <select
-                                            value={newTaskPriority}
-                                            onChange={(e) => setNewTaskPriority(e.target.value)}
-                                        >
-                                            {Object.entries(PRIORITY_CONFIG).map(([key, cfg]) => (
-                                                <option key={key} value={key}>{cfg.label}</option>
-                                            ))}
-                                        </select>
+                                        <label>Description</label>
+                                        <textarea
+                                            placeholder="Describe this task..."
+                                            value={newTaskDesc}
+                                            onChange={(e) => setNewTaskDesc(e.target.value)}
+                                            rows={3}
+                                        />
+                                    </div>
+                                    <div className="form-row">
+                                        <div className="form-group">
+                                            <label>Status</label>
+                                            <select
+                                                value={createStatus}
+                                                onChange={(e) => setCreateStatus(e.target.value)}
+                                            >
+                                                {Object.entries(STATUS_CONFIG).map(([key, cfg]) => (
+                                                    <option key={key} value={key}>{cfg.label}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div className="form-group">
+                                            <label>Priority</label>
+                                            <select
+                                                value={newTaskPriority}
+                                                onChange={(e) => setNewTaskPriority(e.target.value)}
+                                            >
+                                                {Object.entries(PRIORITY_CONFIG).map(([key, cfg]) => (
+                                                    <option key={key} value={key}>{cfg.label}</option>
+                                                ))}
+                                            </select>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                            <div className="modal-footer">
-                                <button className="btn-ghost" onClick={() => setShowCreateModal(false)}>
-                                    Cancel
-                                </button>
-                                <button
-                                    className="btn-primary"
-                                    onClick={handleCreateTask}
-                                    disabled={!newTaskTitle.trim()}
-                                >
-                                    Create Task
-                                </button>
+                                <div className="modal-footer">
+                                    <button className="btn-ghost" onClick={() => setShowCreateModal(false)}>
+                                        Cancel
+                                    </button>
+                                    <button
+                                        className="btn-primary"
+                                        onClick={handleCreateTask}
+                                        disabled={!newTaskTitle.trim()}
+                                    >
+                                        Create Task
+                                    </button>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                )}
-            </main>
+                    )
+                }
+            </main >
 
             {/* Share Modal */}
-            {showShareModal && projectId && (
-                <ShareModal
-                    projectId={projectId}
-                    projectName={projectName}
-                    currentShareToken={shareToken}
-                    isPublic={isProjectPublic}
-                    onClose={() => setShowShareModal(false)}
-                    onUpdate={(token, pub) => {
-                        setShareToken(token);
-                        setIsProjectPublic(pub);
-                    }}
-                />
-            )}
-        </div>
+            {
+                showShareModal && projectId && (
+                    <ShareModal
+                        projectId={projectId}
+                        projectName={projectName}
+                        currentShareToken={shareToken}
+                        isPublic={isProjectPublic}
+                        onClose={() => setShowShareModal(false)}
+                        onUpdate={(token, pub) => {
+                            setShareToken(token);
+                            setIsProjectPublic(pub);
+                        }}
+                    />
+                )
+            }
+        </div >
     );
 }
