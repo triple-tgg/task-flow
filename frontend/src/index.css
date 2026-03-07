@@ -1,6 +1,6 @@
 :root {
   /* Color Palette - Modern Dark Theme */
-  --bg-primary: #0a0a0f;
+  --bg-primary: linear-gradient(135deg, #12121a 0%, #1a1a2e 50%, #0a0a0f 100%);
   --bg-secondary: #12121a;
   --bg-card: #1a1a2e;
   --bg-card-hover: #1e1e35;
@@ -454,6 +454,36 @@ a:hover {
   display: flex;
   min-height: 100vh;
   background: var(--bg-primary);
+  position: relative;
+  overflow: hidden;
+}
+
+.app-layout::before {
+  content: '';
+  position: absolute;
+  width: 800px;
+  height: 800px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(108, 99, 255, 0.08) 0%, rgba(108, 99, 255, 0) 70%);
+  top: -200px;
+  right: -200px;
+  filter: blur(60px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.app-layout::after {
+  content: '';
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(6, 182, 212, 0.06) 0%, rgba(6, 182, 212, 0) 70%);
+  bottom: -150px;
+  left: 10vw;
+  filter: blur(60px);
+  pointer-events: none;
+  z-index: 0;
 }
 
 .main-content {

@@ -12,10 +12,10 @@ export declare class ProjectsService {
         }[];
         id: string;
         name: string;
-        description: string | null;
         createdAt: Date;
         updatedAt: Date;
         deletedAt: Date | null;
+        description: string | null;
     }>;
     findByUser(userId: string, page?: number, limit?: number): Promise<{
         data: {
@@ -27,13 +27,13 @@ export declare class ProjectsService {
             };
             id: string;
             name: string;
-            description: string | null;
             createdAt: Date;
             updatedAt: Date;
             _count: {
                 members: number;
                 tasks: number;
             };
+            description: string | null;
         }[];
         meta: {
             total: number;
@@ -44,28 +44,28 @@ export declare class ProjectsService {
     }>;
     findById(projectId: string, userId: string): Promise<{
         myRole: string;
-        members: ({
-            user: {
-                id: string;
-                name: string;
-                email: string;
-            };
-        } & {
-            id: string;
-            projectId: string;
-            userId: string;
-            role: string;
-            joinedAt: Date;
-        })[];
         _count: {
             tasks: number;
         };
+        members: ({
+            user: {
+                id: string;
+                email: string;
+                name: string;
+            };
+        } & {
+            id: string;
+            role: string;
+            userId: string;
+            projectId: string;
+            joinedAt: Date;
+        })[];
         id: string;
         name: string;
-        description: string | null;
         createdAt: Date;
         updatedAt: Date;
         deletedAt: Date | null;
+        description: string | null;
     }>;
     update(projectId: string, userId: string, data: {
         name?: string;
@@ -73,8 +73,8 @@ export declare class ProjectsService {
     }): Promise<{
         id: string;
         name: string;
-        description: string | null;
         updatedAt: Date;
+        description: string | null;
     }>;
     remove(projectId: string, userId: string): Promise<{
         message: string;
@@ -82,27 +82,27 @@ export declare class ProjectsService {
     addMember(projectId: string, requesterId: string, targetUserId: string, role?: string): Promise<{
         user: {
             id: string;
-            name: string;
             email: string;
+            name: string;
         };
     } & {
         id: string;
-        projectId: string;
-        userId: string;
         role: string;
+        userId: string;
+        projectId: string;
         joinedAt: Date;
     }>;
     updateMemberRole(projectId: string, requesterId: string, targetUserId: string, role: string): Promise<{
         user: {
             id: string;
-            name: string;
             email: string;
+            name: string;
         };
     } & {
         id: string;
-        projectId: string;
-        userId: string;
         role: string;
+        userId: string;
+        projectId: string;
         joinedAt: Date;
     }>;
     removeMember(projectId: string, requesterId: string, targetUserId: string): Promise<{
