@@ -13,6 +13,7 @@ import GanttPage from './pages/GanttPage';
 import WorkloadPage from './pages/WorkloadPage';
 import TasksPage from './pages/TasksPage';
 import PublicProjectPage from './pages/PublicProjectPage';
+import EnvironmentsPage from './pages/EnvironmentsPage';
 import './index.css';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -149,6 +150,15 @@ export default function App() {
           element={
             <ProtectedRoute>
               <ProjectsPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/environments"
+          element={
+            <ProtectedRoute>
+              <EnvironmentsPage />
             </ProtectedRoute>
           }
         />

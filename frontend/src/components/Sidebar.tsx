@@ -11,6 +11,7 @@ import {
     Users,
     LogOut,
     Plus,
+    Server,
 } from 'lucide-react';
 
 const MENU_ITEMS = [
@@ -20,6 +21,7 @@ const MENU_ITEMS = [
     { label: 'Calendar', icon: Calendar, path: '/calendar' },
     { label: 'Gantt Chart', icon: BarChart3, path: '/gantt' },
     { label: 'Workload', icon: Users, path: '/workload' },
+    { label: 'Environment', icon: Server, path: '/environments' },
 ];
 
 export default function Sidebar() {
