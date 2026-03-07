@@ -19,6 +19,7 @@ import {
     UpdateMemberRoleDto,
 } from './dto';
 import { CurrentUser } from '../auth/decorators';
+import { Public } from '../auth/decorators';
 
 @ApiTags('projects')
 @ApiBearerAuth()
@@ -112,5 +113,33 @@ export class ProjectsController {
         @CurrentUser('id') requesterId: string,
     ) {
         return this.projectsService.removeMember(projectId, requesterId, targetUserId);
+    }
+
+    // ─── Share Link ──────────────────────────────────────
+
+    @Post(':id/share')
+    @ApiOperation({ summary: 'Enable public share link (owner only)' })
+    async enableShare(
+        @Param('id') projectId: string,
+        @CurrentUser('id') userId: string,
+    ) {
+        return this.projectsService.generateShareLink(projectId, userId);
+    }
+
+    @Delete(':id/share')
+    @HttpCode(HttpStatus.OK)
+    @ApiOperation({ summary: 'Revoke public share link (owner only)' })
+    async revokeShare(
+        @Param('id') projectId: string,
+        @CurrentUser('id') userId: string,
+    ) {
+        return this.projectsService.revokeShareLink(projectId, userId);
+    }
+
+    @Public()
+    @Get('public/:token')
+    @ApiOperation({ summary: 'View project via public share link (no auth required)' })
+    async viewPublic(@Param('token') token: string) {
+        return this.projectsService.findByShareToken(token);
     }
 }

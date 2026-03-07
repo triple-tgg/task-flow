@@ -14,6 +14,8 @@ export declare class ProjectsController {
         updatedAt: Date;
         deletedAt: Date | null;
         description: string | null;
+        isPublic: boolean;
+        shareToken: string | null;
     }>;
     findAll(userId: string, page?: string, limit?: string): Promise<{
         data: {
@@ -64,6 +66,8 @@ export declare class ProjectsController {
         updatedAt: Date;
         deletedAt: Date | null;
         description: string | null;
+        isPublic: boolean;
+        shareToken: string | null;
     }>;
     update(id: string, userId: string, dto: UpdateProjectDto): Promise<{
         id: string;
@@ -102,5 +106,170 @@ export declare class ProjectsController {
     }>;
     removeMember(projectId: string, targetUserId: string, requesterId: string): Promise<{
         message: string;
+    }>;
+    enableShare(projectId: string, userId: string): Promise<{
+        id: string;
+        isPublic: boolean;
+        shareToken: string | null;
+    }>;
+    revokeShare(projectId: string, userId: string): Promise<{
+        message: string;
+    }>;
+    viewPublic(token: string): Promise<{
+        project: {
+            id: string;
+            name: string;
+            createdAt: Date;
+            description: string | null;
+            members: {
+                user: {
+                    id: string;
+                    name: string;
+                };
+                role: string;
+            }[];
+        };
+        board: {
+            todo: ({
+                tags: ({
+                    tag: {
+                        id: string;
+                        name: string;
+                        createdAt: Date;
+                        projectId: string;
+                        color: string | null;
+                    };
+                } & {
+                    taskId: string;
+                    tagId: string;
+                })[];
+                assignee: {
+                    id: string;
+                    name: string;
+                } | null;
+            } & {
+                id: string;
+                createdAt: Date;
+                updatedAt: Date;
+                deletedAt: Date | null;
+                description: string | null;
+                title: string;
+                projectId: string;
+                status: string;
+                priority: string;
+                dueDate: Date | null;
+                position: number;
+                recurringRule: import(".prisma/client/runtime/client").JsonValue | null;
+                creatorId: string;
+                assigneeId: string | null;
+                parentId: string | null;
+                deletedBy: string | null;
+            })[];
+            in_progress: ({
+                tags: ({
+                    tag: {
+                        id: string;
+                        name: string;
+                        createdAt: Date;
+                        projectId: string;
+                        color: string | null;
+                    };
+                } & {
+                    taskId: string;
+                    tagId: string;
+                })[];
+                assignee: {
+                    id: string;
+                    name: string;
+                } | null;
+            } & {
+                id: string;
+                createdAt: Date;
+                updatedAt: Date;
+                deletedAt: Date | null;
+                description: string | null;
+                title: string;
+                projectId: string;
+                status: string;
+                priority: string;
+                dueDate: Date | null;
+                position: number;
+                recurringRule: import(".prisma/client/runtime/client").JsonValue | null;
+                creatorId: string;
+                assigneeId: string | null;
+                parentId: string | null;
+                deletedBy: string | null;
+            })[];
+            review: ({
+                tags: ({
+                    tag: {
+                        id: string;
+                        name: string;
+                        createdAt: Date;
+                        projectId: string;
+                        color: string | null;
+                    };
+                } & {
+                    taskId: string;
+                    tagId: string;
+                })[];
+                assignee: {
+                    id: string;
+                    name: string;
+                } | null;
+            } & {
+                id: string;
+                createdAt: Date;
+                updatedAt: Date;
+                deletedAt: Date | null;
+                description: string | null;
+                title: string;
+                projectId: string;
+                status: string;
+                priority: string;
+                dueDate: Date | null;
+                position: number;
+                recurringRule: import(".prisma/client/runtime/client").JsonValue | null;
+                creatorId: string;
+                assigneeId: string | null;
+                parentId: string | null;
+                deletedBy: string | null;
+            })[];
+            done: ({
+                tags: ({
+                    tag: {
+                        id: string;
+                        name: string;
+                        createdAt: Date;
+                        projectId: string;
+                        color: string | null;
+                    };
+                } & {
+                    taskId: string;
+                    tagId: string;
+                })[];
+                assignee: {
+                    id: string;
+                    name: string;
+                } | null;
+            } & {
+                id: string;
+                createdAt: Date;
+                updatedAt: Date;
+                deletedAt: Date | null;
+                description: string | null;
+                title: string;
+                projectId: string;
+                status: string;
+                priority: string;
+                dueDate: Date | null;
+                position: number;
+                recurringRule: import(".prisma/client/runtime/client").JsonValue | null;
+                creatorId: string;
+                assigneeId: string | null;
+                parentId: string | null;
+                deletedBy: string | null;
+            })[];
+        };
     }>;
 }

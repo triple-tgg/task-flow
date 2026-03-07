@@ -15,6 +15,7 @@ import {
     Circle,
     Square,
     Calendar,
+    Link2,
 } from 'lucide-react';
 import {
     DndContext,
@@ -38,6 +39,7 @@ import { useProjectsStore } from '../stores/projectsStore';
 import Sidebar from '../components/Sidebar';
 import { TaskAttachments } from '../components/tasks/TaskAttachments';
 import RichTextEditor from '../components/RichTextEditor';
+import ShareModal from '../components/ShareModal';
 
 const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
     todo: { label: 'To Do', color: '#64748b' },
@@ -192,6 +194,9 @@ export default function ProjectDetailPage() {
     const [editDueDate, setEditDueDate] = useState('');
     const [isSaving, setIsSaving] = useState(false);
     const [tagInput, setTagInput] = useState('');
+    const [showShareModal, setShowShareModal] = useState(false);
+    const [shareToken, setShareToken] = useState<string | null>(null);
+    const [isProjectPublic, setIsProjectPublic] = useState(false);
 
     const sensors = useSensors(
         useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -385,16 +390,25 @@ export default function ProjectDetailPage() {
                         <span className="breadcrumb-current">{projectName}</span>
                         <span className="breadcrumb-count">{totalTasks} tasks</span>
                     </div>
-                    <button
-                        className="btn-primary"
-                        onClick={() => {
-                            setCreateStatus('todo');
-                            setShowCreateModal(true);
-                        }}
-                    >
-                        <Plus size={16} />
-                        Add Task
-                    </button>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <button
+                            className="btn-secondary"
+                            onClick={() => setShowShareModal(true)}
+                        >
+                            <Link2 size={16} />
+                            Share
+                        </button>
+                        <button
+                            className="btn-primary"
+                            onClick={() => {
+                                setCreateStatus('todo');
+                                setShowCreateModal(true);
+                            }}
+                        >
+                            <Plus size={16} />
+                            Add Task
+                        </button>
+                    </div>
                 </div>
 
                 {/* Kanban Board with DnD */}
@@ -739,6 +753,21 @@ export default function ProjectDetailPage() {
                     </div>
                 )}
             </main>
+
+            {/* Share Modal */}
+            {showShareModal && projectId && (
+                <ShareModal
+                    projectId={projectId}
+                    projectName={projectName}
+                    currentShareToken={shareToken}
+                    isPublic={isProjectPublic}
+                    onClose={() => setShowShareModal(false)}
+                    onUpdate={(token, pub) => {
+                        setShareToken(token);
+                        setIsProjectPublic(pub);
+                    }}
+                />
+            )}
         </div>
     );
 }

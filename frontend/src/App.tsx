@@ -12,6 +12,7 @@ import CalendarPage from './pages/CalendarPage';
 import GanttPage from './pages/GanttPage';
 import WorkloadPage from './pages/WorkloadPage';
 import TasksPage from './pages/TasksPage';
+import PublicProjectPage from './pages/PublicProjectPage';
 import './index.css';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -84,6 +85,9 @@ export default function App() {
           }
         />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
+
+        {/* Public shared project (no auth) */}
+        <Route path="/shared/:token" element={<PublicProjectPage />} />
 
         {/* Protected routes */}
         <Route

@@ -5,6 +5,7 @@ import {
     ConflictException,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import * as crypto from 'crypto';
 
 @Injectable()
 export class ProjectsService {
@@ -254,6 +255,77 @@ export class ProjectsService {
         });
 
         return { message: 'Member removed' };
+    }
+
+    // ─── Share Link ─────────────────────────────────────
+
+    async generateShareLink(projectId: string, userId: string) {
+        await this.requireRole(projectId, userId, ['owner']);
+
+        const token = crypto.randomUUID();
+
+        const project = await this.prisma.project.update({
+            where: { id: projectId },
+            data: { isPublic: true, shareToken: token },
+            select: { id: true, shareToken: true, isPublic: true },
+        });
+
+        return project;
+    }
+
+    async revokeShareLink(projectId: string, userId: string) {
+        await this.requireRole(projectId, userId, ['owner']);
+
+        await this.prisma.project.update({
+            where: { id: projectId },
+            data: { isPublic: false, shareToken: null },
+        });
+
+        return { message: 'Share link revoked' };
+    }
+
+    async findByShareToken(token: string) {
+        const project = await this.prisma.project.findUnique({
+            where: { shareToken: token, isPublic: true, deletedAt: null },
+            select: {
+                id: true,
+                name: true,
+                description: true,
+                createdAt: true,
+                members: {
+                    select: {
+                        role: true,
+                        user: { select: { id: true, name: true } },
+                    },
+                },
+            },
+        });
+
+        if (!project) {
+            throw new NotFoundException({
+                error: 'PROJECT_NOT_FOUND',
+                message: 'Shared project not found or link has been revoked',
+            });
+        }
+
+        // Fetch tasks grouped by status (kanban board)
+        const tasks = await this.prisma.task.findMany({
+            where: { projectId: project.id, deletedAt: null },
+            include: {
+                assignee: { select: { id: true, name: true } },
+                tags: { include: { tag: true } },
+            },
+            orderBy: { position: 'asc' },
+        });
+
+        const board = {
+            todo: tasks.filter((t) => t.status === 'todo'),
+            in_progress: tasks.filter((t) => t.status === 'in_progress'),
+            review: tasks.filter((t) => t.status === 'review'),
+            done: tasks.filter((t) => t.status === 'done'),
+        };
+
+        return { project, board };
     }
 
     // ─── Helpers ─────────────────────────────────────────

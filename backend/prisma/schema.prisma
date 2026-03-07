@@ -88,6 +88,8 @@ model Project {
   id          String    @id @default(uuid())
   name        String
   description String?
+  isPublic    Boolean   @default(false)
+  shareToken  String?   @unique
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   deletedAt   DateTime?
@@ -96,6 +98,7 @@ model Project {
   tasks   Task[]
   tags    Tag[]
 
+  @@index([shareToken])
   @@map("projects")
 }
 

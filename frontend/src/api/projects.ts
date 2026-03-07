@@ -1,4 +1,7 @@
 import api from './axios';
+import axios from 'axios';
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api/v1';
 
 // ─── Projects API ────────────────────────────────────
 
@@ -27,4 +30,18 @@ export const projectsApi = {
 
     removeMember: (projectId: string, userId: string) =>
         api.delete(`/projects/${projectId}/members/${userId}`).then(r => r.data),
+
+    // Share Link
+    enableShare: (projectId: string) =>
+        api.post(`/projects/${projectId}/share`).then(r => r.data),
+
+    revokeShare: (projectId: string) =>
+        api.delete(`/projects/${projectId}/share`).then(r => r.data),
+};
+
+// ─── Public API (no auth) ────────────────────────────
+
+export const publicApi = {
+    getProject: (token: string) =>
+        axios.get(`${API_BASE_URL}/projects/public/${token}`).then(r => r.data),
 };

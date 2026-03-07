@@ -18,6 +18,7 @@ const swagger_1 = require("@nestjs/swagger");
 const projects_service_1 = require("./projects.service");
 const dto_1 = require("./dto");
 const decorators_1 = require("../auth/decorators");
+const decorators_2 = require("../auth/decorators");
 let ProjectsController = class ProjectsController {
     projectsService;
     constructor(projectsService) {
@@ -46,6 +47,15 @@ let ProjectsController = class ProjectsController {
     }
     async removeMember(projectId, targetUserId, requesterId) {
         return this.projectsService.removeMember(projectId, requesterId, targetUserId);
+    }
+    async enableShare(projectId, userId) {
+        return this.projectsService.generateShareLink(projectId, userId);
+    }
+    async revokeShare(projectId, userId) {
+        return this.projectsService.revokeShareLink(projectId, userId);
+    }
+    async viewPublic(token) {
+        return this.projectsService.findByShareToken(token);
     }
 };
 exports.ProjectsController = ProjectsController;
@@ -129,6 +139,34 @@ __decorate([
     __metadata("design:paramtypes", [String, String, String]),
     __metadata("design:returntype", Promise)
 ], ProjectsController.prototype, "removeMember", null);
+__decorate([
+    (0, common_1.Post)(':id/share'),
+    (0, swagger_1.ApiOperation)({ summary: 'Enable public share link (owner only)' }),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, decorators_1.CurrentUser)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:returntype", Promise)
+], ProjectsController.prototype, "enableShare", null);
+__decorate([
+    (0, common_1.Delete)(':id/share'),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
+    (0, swagger_1.ApiOperation)({ summary: 'Revoke public share link (owner only)' }),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, decorators_1.CurrentUser)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:returntype", Promise)
+], ProjectsController.prototype, "revokeShare", null);
+__decorate([
+    (0, decorators_2.Public)(),
+    (0, common_1.Get)('public/:token'),
+    (0, swagger_1.ApiOperation)({ summary: 'View project via public share link (no auth required)' }),
+    __param(0, (0, common_1.Param)('token')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], ProjectsController.prototype, "viewPublic", null);
 exports.ProjectsController = ProjectsController = __decorate([
     (0, swagger_1.ApiTags)('projects'),
     (0, swagger_1.ApiBearerAuth)(),
