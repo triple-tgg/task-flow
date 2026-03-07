@@ -54,6 +54,12 @@ let TasksController = class TasksController {
     async remove(taskId, userId) {
         return this.tasksService.remove(taskId, userId);
     }
+    async addAssignee(taskId, userId, targetUserId) {
+        return this.tasksService.addAssignee(taskId, userId, targetUserId);
+    }
+    async removeAssignee(taskId, targetUserId, userId) {
+        return this.tasksService.removeAssignee(taskId, userId, targetUserId);
+    }
 };
 exports.TasksController = TasksController;
 __decorate([
@@ -140,6 +146,27 @@ __decorate([
     __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", Promise)
 ], TasksController.prototype, "remove", null);
+__decorate([
+    (0, common_1.Post)(':taskId/assignees'),
+    (0, swagger_1.ApiOperation)({ summary: 'Add assignee to task' }),
+    __param(0, (0, common_1.Param)('taskId')),
+    __param(1, (0, decorators_1.CurrentUser)('id')),
+    __param(2, (0, common_1.Body)('userId')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String, String]),
+    __metadata("design:returntype", Promise)
+], TasksController.prototype, "addAssignee", null);
+__decorate([
+    (0, common_1.Delete)(':taskId/assignees/:targetUserId'),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
+    (0, swagger_1.ApiOperation)({ summary: 'Remove assignee from task' }),
+    __param(0, (0, common_1.Param)('taskId')),
+    __param(1, (0, common_1.Param)('targetUserId')),
+    __param(2, (0, decorators_1.CurrentUser)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String, String]),
+    __metadata("design:returntype", Promise)
+], TasksController.prototype, "removeAssignee", null);
 exports.TasksController = TasksController = __decorate([
     (0, swagger_1.ApiTags)('tasks'),
     (0, swagger_1.ApiBearerAuth)(),

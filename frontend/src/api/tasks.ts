@@ -23,6 +23,7 @@ export interface Task {
     position: number;
     creator: { id: string; name: string; email: string };
     assignee?: { id: string; name: string; email: string } | null;
+    assignees: Array<{ user: { id: string; name: string; email: string } }>;
     tags: Array<{ tag: { id: string; name: string; color?: string } }>;
     subTasks: Array<{ id: string; title: string; status: string; priority: string }>;
     attachments?: Attachment[];
@@ -83,6 +84,12 @@ export const tasksApi = {
 
     remove: (taskId: string, projectId: string) =>
         api.delete(`/projects/${projectId}/tasks/${taskId}`).then(r => r.data),
+
+    addAssignee: (taskId: string, projectId: string, userId: string) =>
+        api.post(`/projects/${projectId}/tasks/${taskId}/assignees`, { userId }).then(r => r.data),
+
+    removeAssignee: (taskId: string, projectId: string, userId: string) =>
+        api.delete(`/projects/${projectId}/tasks/${taskId}/assignees/${userId}`).then(r => r.data),
 };
 
 // ─── Comments API ────────────────────────────────────

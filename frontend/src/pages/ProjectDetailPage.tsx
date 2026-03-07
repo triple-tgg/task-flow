@@ -15,6 +15,7 @@ import {
     Maximize2,
     Minimize2,
     Send,
+    UserPlus,
 } from 'lucide-react';
 import {
     DndContext,
@@ -194,6 +195,7 @@ export default function ProjectDetailPage() {
     const [editPriority, setEditPriority] = useState('');
     const [editDescription, setEditDescription] = useState('');
     const [editDueDate, setEditDueDate] = useState('');
+    const [showAssigneeDropdown, setShowAssigneeDropdown] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [tagInput, setTagInput] = useState('');
     const [showShareModal, setShowShareModal] = useState(false);
@@ -521,16 +523,66 @@ export default function ProjectDetailPage() {
                                             </select>
                                         </div>
                                     </div>
-                                    <div className="ts-prop-row">
-                                        <span className="ts-prop-label">Assignee</span>
-                                        <div className="ts-prop-value">
-                                            {selectedTask.assignee ? (
-                                                <div className="ts-assignee-chip">
-                                                    <div className="ts-avatar-sm">{selectedTask.assignee.name.charAt(0).toUpperCase()}</div>
-                                                    <span>{selectedTask.assignee.name}</span>
+                                    <div className="ts-prop-row" style={{ alignItems: 'flex-start' }}>
+                                        <span className="ts-prop-label">Assignees</span>
+                                        <div className="ts-prop-value" style={{ position: 'relative' }}>
+                                            <div className="ts-assignees-chips">
+                                                {(selectedTask.assignees || []).map((a: any) => (
+                                                    <div key={a.user.id} className="ts-assignee-chip">
+                                                        <div className="ts-avatar-sm">{a.user.name.charAt(0).toUpperCase()}</div>
+                                                        <span>{a.user.name}</span>
+                                                        <button
+                                                            className="ts-chip-remove"
+                                                            onClick={async () => {
+                                                                if (!projectId) return;
+                                                                await tasksApi.removeAssignee(selectedTask.id, projectId, a.user.id);
+                                                                setSelectedTask({
+                                                                    ...selectedTask,
+                                                                    assignees: selectedTask.assignees.filter((x: any) => x.user.id !== a.user.id),
+                                                                });
+                                                                await fetchBoard();
+                                                            }}
+                                                        >
+                                                            <X size={12} />
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                                <button
+                                                    className="ts-add-assignee-btn"
+                                                    onClick={() => setShowAssigneeDropdown(!showAssigneeDropdown)}
+                                                >
+                                                    <UserPlus size={14} />
+                                                </button>
+                                            </div>
+                                            {showAssigneeDropdown && (
+                                                <div className="ts-assignee-dropdown">
+                                                    {currentProject?.members
+                                                        ?.filter((m: any) => !(selectedTask.assignees || []).some((a: any) => a.user.id === m.user.id))
+                                                        .map((m: any) => (
+                                                            <div
+                                                                key={m.user.id}
+                                                                className="ts-assignee-option"
+                                                                onClick={async () => {
+                                                                    if (!projectId) return;
+                                                                    await tasksApi.addAssignee(selectedTask.id, projectId, m.user.id);
+                                                                    setSelectedTask({
+                                                                        ...selectedTask,
+                                                                        assignees: [...(selectedTask.assignees || []), { user: m.user }],
+                                                                    });
+                                                                    setShowAssigneeDropdown(false);
+                                                                    await fetchBoard();
+                                                                }}
+                                                            >
+                                                                <div className="ts-avatar-sm">{m.user.name.charAt(0).toUpperCase()}</div>
+                                                                <span>{m.user.name}</span>
+                                                            </div>
+                                                        ))}
+                                                    {currentProject?.members
+                                                        ?.filter((m: any) => !(selectedTask.assignees || []).some((a: any) => a.user.id === m.user.id))
+                                                        .length === 0 && (
+                                                            <div className="ts-assignee-option" style={{ opacity: 0.5, pointerEvents: 'none' }}>No more members</div>
+                                                        )}
                                                 </div>
-                                            ) : (
-                                                <span className="ts-text-muted">Unassigned</span>
                                             )}
                                         </div>
                                     </div>

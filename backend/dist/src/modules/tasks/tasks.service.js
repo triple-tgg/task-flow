@@ -206,10 +206,44 @@ let TasksService = class TasksService {
         }
         return task;
     }
+    async addAssignee(taskId, userId, targetUserId) {
+        const task = await this.findByIdInternal(taskId);
+        await this.verifyProjectAccess(task.projectId, userId, ['owner', 'editor']);
+        const isMember = await this.prisma.projectMember.findFirst({
+            where: { projectId: task.projectId, userId: targetUserId },
+        });
+        if (!isMember) {
+            throw new common_1.ForbiddenException({ error: 'NOT_MEMBER', message: 'User is not a project member' });
+        }
+        await this.prisma.taskAssignee.upsert({
+            where: { taskId_userId: { taskId, userId: targetUserId } },
+            create: { taskId, userId: targetUserId },
+            update: {},
+        });
+        return this.prisma.task.findUnique({
+            where: { id: taskId },
+            include: this.taskIncludes(),
+        });
+    }
+    async removeAssignee(taskId, userId, targetUserId) {
+        const task = await this.findByIdInternal(taskId);
+        await this.verifyProjectAccess(task.projectId, userId, ['owner', 'editor']);
+        await this.prisma.taskAssignee.deleteMany({
+            where: { taskId, userId: targetUserId },
+        });
+        return this.prisma.task.findUnique({
+            where: { id: taskId },
+            include: this.taskIncludes(),
+        });
+    }
     taskIncludes() {
         return {
             creator: { select: { id: true, name: true, email: true } },
             assignee: { select: { id: true, name: true, email: true } },
+            assignees: {
+                include: { user: { select: { id: true, name: true, email: true } } },
+                orderBy: { createdAt: 'asc' },
+            },
             tags: {
                 include: { tag: { select: { id: true, name: true, color: true } } },
             },

@@ -289,10 +289,54 @@ export class TasksService {
         return task;
     }
 
+    // ─── Assignees ────────────────────────────────────────
+
+    async addAssignee(taskId: string, userId: string, targetUserId: string) {
+        const task = await this.findByIdInternal(taskId);
+        await this.verifyProjectAccess(task.projectId, userId, ['owner', 'editor']);
+
+        // Verify target user is a project member
+        const isMember = await this.prisma.projectMember.findFirst({
+            where: { projectId: task.projectId, userId: targetUserId },
+        });
+        if (!isMember) {
+            throw new ForbiddenException({ error: 'NOT_MEMBER', message: 'User is not a project member' });
+        }
+
+        await this.prisma.taskAssignee.upsert({
+            where: { taskId_userId: { taskId, userId: targetUserId } },
+            create: { taskId, userId: targetUserId },
+            update: {},
+        });
+
+        return this.prisma.task.findUnique({
+            where: { id: taskId },
+            include: this.taskIncludes(),
+        });
+    }
+
+    async removeAssignee(taskId: string, userId: string, targetUserId: string) {
+        const task = await this.findByIdInternal(taskId);
+        await this.verifyProjectAccess(task.projectId, userId, ['owner', 'editor']);
+
+        await this.prisma.taskAssignee.deleteMany({
+            where: { taskId, userId: targetUserId },
+        });
+
+        return this.prisma.task.findUnique({
+            where: { id: taskId },
+            include: this.taskIncludes(),
+        });
+    }
+
     private taskIncludes() {
         return {
             creator: { select: { id: true, name: true, email: true } },
             assignee: { select: { id: true, name: true, email: true } },
+            assignees: {
+                include: { user: { select: { id: true, name: true, email: true } } },
+                orderBy: { createdAt: 'asc' as const },
+            },
             tags: {
                 include: { tag: { select: { id: true, name: true, color: true } } },
             },

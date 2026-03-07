@@ -117,4 +117,25 @@ export class TasksController {
     ) {
         return this.tasksService.remove(taskId, userId);
     }
+
+    @Post(':taskId/assignees')
+    @ApiOperation({ summary: 'Add assignee to task' })
+    async addAssignee(
+        @Param('taskId') taskId: string,
+        @CurrentUser('id') userId: string,
+        @Body('userId') targetUserId: string,
+    ) {
+        return this.tasksService.addAssignee(taskId, userId, targetUserId);
+    }
+
+    @Delete(':taskId/assignees/:targetUserId')
+    @HttpCode(HttpStatus.OK)
+    @ApiOperation({ summary: 'Remove assignee from task' })
+    async removeAssignee(
+        @Param('taskId') taskId: string,
+        @Param('targetUserId') targetUserId: string,
+        @CurrentUser('id') userId: string,
+    ) {
+        return this.tasksService.removeAssignee(taskId, userId, targetUserId);
+    }
 }

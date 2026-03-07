@@ -1873,11 +1873,104 @@ a:hover {
   border-color: var(--accent-primary);
 }
 
+.ts-assignees-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+}
+
 .ts-assignee-chip {
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.35rem;
+  font-size: 0.78rem;
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  padding: 0.2rem 0.5rem 0.2rem 0.25rem;
+  transition: all 0.15s ease;
+}
+
+.ts-assignee-chip:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.ts-chip-remove {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border: none;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0;
+  opacity: 0;
+  transition: all 0.15s ease;
+}
+
+.ts-assignee-chip:hover .ts-chip-remove {
+  opacity: 1;
+}
+
+.ts-chip-remove:hover {
+  background: rgba(239, 68, 68, 0.3);
+  color: #ef4444;
+}
+
+.ts-add-assignee-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 1px dashed rgba(255, 255, 255, 0.15);
+  background: transparent;
+  border-radius: 50%;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.ts-add-assignee-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(99, 102, 241, 0.08);
+}
+
+.ts-assignee-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  min-width: 200px;
+  background: rgba(20, 20, 40, 0.98);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-md);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  z-index: 100;
+  padding: 0.3rem;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.ts-assignee-option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.6rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
   font-size: 0.82rem;
+  color: var(--text-secondary);
+  transition: all 0.12s ease;
+}
+
+.ts-assignee-option:hover {
+  background: rgba(99, 102, 241, 0.12);
   color: var(--text-primary);
 }
 
