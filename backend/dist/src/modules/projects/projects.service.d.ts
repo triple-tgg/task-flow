@@ -50,8 +50,8 @@ export declare class ProjectsService {
         members: ({
             user: {
                 id: string;
-                name: string;
                 email: string;
+                name: string;
             };
         } & {
             id: string;
@@ -82,8 +82,8 @@ export declare class ProjectsService {
     addMember(projectId: string, requesterId: string, targetUserId: string, role?: string): Promise<{
         user: {
             id: string;
-            name: string;
             email: string;
+            name: string;
         };
     } & {
         id: string;
@@ -95,8 +95,8 @@ export declare class ProjectsService {
     updateMemberRole(projectId: string, requesterId: string, targetUserId: string, role: string): Promise<{
         user: {
             id: string;
-            name: string;
             email: string;
+            name: string;
         };
     } & {
         id: string;

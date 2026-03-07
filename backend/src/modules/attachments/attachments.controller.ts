@@ -9,10 +9,12 @@ import {
     UseGuards,
     ParseFilePipe,
     MaxFileSizeValidator,
+    FileTypeValidator,
     Req,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiBearerAuth, ApiConsumes, ApiBody } from '@nestjs/swagger';
+import { SkipThrottle } from '@nestjs/throttler';
 import { AttachmentsService } from './attachments.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
@@ -24,6 +26,7 @@ export class AttachmentsController {
     constructor(private readonly attachmentsService: AttachmentsService) { }
 
     @Post('task/:taskId')
+    @SkipThrottle()
     @ApiConsumes('multipart/form-data')
     @ApiBody({
         schema: {
@@ -44,6 +47,8 @@ export class AttachmentsController {
                 validators: [
                     // Example: Max 10MB per file
                     new MaxFileSizeValidator({ maxSize: 10 * 1024 * 1024 }),
+                    // Restrict to safe file types
+                    new FileTypeValidator({ fileType: '.(png|jpeg|jpg|webp|pdf|doc|docx|xls|xlsx|csv|txt)' }),
                 ],
             }),
         )
@@ -51,7 +56,7 @@ export class AttachmentsController {
         @Req() req: any,
     ) {
         // The JWT Guard attaches the user payload to req.user
-        const userId = req.user.sub;
+        const userId = req.user.id;
         return this.attachmentsService.uploadAttachment(taskId, userId, file);
     }
 
@@ -67,7 +72,7 @@ export class AttachmentsController {
 
     @Delete(':id')
     async deleteAttachment(@Param('id') id: string, @Req() req: any) {
-        const userId = req.user.sub;
+        const userId = req.user.id;
         return this.attachmentsService.deleteAttachment(id, userId);
     }
 }

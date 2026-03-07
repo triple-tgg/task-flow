@@ -6,8 +6,8 @@ export declare class CommentsController {
     create(taskId: string, userId: string, dto: CreateCommentDto): Promise<{
         user: {
             id: string;
-            name: string;
             email: string;
+            name: string;
         };
     } & {
         id: string;
@@ -22,8 +22,8 @@ export declare class CommentsController {
         data: ({
             user: {
                 id: string;
-                name: string;
                 email: string;
+                name: string;
             };
         } & {
             id: string;
@@ -44,8 +44,8 @@ export declare class CommentsController {
     update(commentId: string, userId: string, dto: UpdateCommentDto): Promise<{
         user: {
             id: string;
-            name: string;
             email: string;
+            name: string;
         };
     } & {
         id: string;

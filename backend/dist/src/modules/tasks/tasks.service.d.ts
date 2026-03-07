@@ -29,13 +29,13 @@ export declare class TasksService {
         })[];
         creator: {
             id: string;
-            name: string;
             email: string;
+            name: string;
         };
         assignee: {
             id: string;
-            name: string;
             email: string;
+            name: string;
         } | null;
         subTasks: {
             id: string;
@@ -87,13 +87,13 @@ export declare class TasksService {
             })[];
             creator: {
                 id: string;
-                name: string;
                 email: string;
+                name: string;
             };
             assignee: {
                 id: string;
-                name: string;
                 email: string;
+                name: string;
             } | null;
             subTasks: {
                 id: string;
@@ -144,13 +144,13 @@ export declare class TasksService {
         })[];
         creator: {
             id: string;
-            name: string;
             email: string;
+            name: string;
         };
         assignee: {
             id: string;
-            name: string;
             email: string;
+            name: string;
         } | null;
         subTasks: {
             id: string;
@@ -194,13 +194,13 @@ export declare class TasksService {
         })[];
         creator: {
             id: string;
-            name: string;
             email: string;
+            name: string;
         };
         assignee: {
             id: string;
-            name: string;
             email: string;
+            name: string;
         } | null;
         subTasks: {
             id: string;
@@ -252,13 +252,13 @@ export declare class TasksService {
         })[];
         creator: {
             id: string;
-            name: string;
             email: string;
+            name: string;
         };
         assignee: {
             id: string;
-            name: string;
             email: string;
+            name: string;
         } | null;
         subTasks: {
             id: string;
@@ -302,13 +302,13 @@ export declare class TasksService {
         })[];
         creator: {
             id: string;
-            name: string;
             email: string;
+            name: string;
         };
         assignee: {
             id: string;
-            name: string;
             email: string;
+            name: string;
         } | null;
         subTasks: {
             id: string;
@@ -355,13 +355,13 @@ export declare class TasksService {
         })[];
         creator: {
             id: string;
-            name: string;
             email: string;
+            name: string;
         };
         assignee: {
             id: string;
-            name: string;
             email: string;
+            name: string;
         } | null;
         subTasks: {
             id: string;

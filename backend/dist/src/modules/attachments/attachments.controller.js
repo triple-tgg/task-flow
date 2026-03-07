@@ -16,6 +16,7 @@ exports.AttachmentsController = void 0;
 const common_1 = require("@nestjs/common");
 const platform_express_1 = require("@nestjs/platform-express");
 const swagger_1 = require("@nestjs/swagger");
+const throttler_1 = require("@nestjs/throttler");
 const attachments_service_1 = require("./attachments.service");
 const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
 let AttachmentsController = class AttachmentsController {
@@ -24,7 +25,7 @@ let AttachmentsController = class AttachmentsController {
         this.attachmentsService = attachmentsService;
     }
     async uploadAttachment(taskId, file, req) {
-        const userId = req.user.sub;
+        const userId = req.user.id;
         return this.attachmentsService.uploadAttachment(taskId, userId, file);
     }
     async getTasksAttachments(taskId) {
@@ -34,13 +35,14 @@ let AttachmentsController = class AttachmentsController {
         return this.attachmentsService.getAttachment(id);
     }
     async deleteAttachment(id, req) {
-        const userId = req.user.sub;
+        const userId = req.user.id;
         return this.attachmentsService.deleteAttachment(id, userId);
     }
 };
 exports.AttachmentsController = AttachmentsController;
 __decorate([
     (0, common_1.Post)('task/:taskId'),
+    (0, throttler_1.SkipThrottle)(),
     (0, swagger_1.ApiConsumes)('multipart/form-data'),
     (0, swagger_1.ApiBody)({
         schema: {
@@ -58,6 +60,7 @@ __decorate([
     __param(1, (0, common_1.UploadedFile)(new common_1.ParseFilePipe({
         validators: [
             new common_1.MaxFileSizeValidator({ maxSize: 10 * 1024 * 1024 }),
+            new common_1.FileTypeValidator({ fileType: '.(png|jpeg|jpg|webp|pdf|doc|docx|xls|xlsx|csv|txt)' }),
         ],
     }))),
     __param(2, (0, common_1.Req)()),

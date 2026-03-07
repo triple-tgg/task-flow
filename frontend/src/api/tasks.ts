@@ -1,5 +1,18 @@
 import api from './axios';
 
+export interface Attachment {
+    id: string;
+    taskId: string;
+    userId: string;
+    filename: string;
+    storagePath: string;
+    size: number;
+    mimeType: string;
+    url?: string;
+    createdAt: string;
+}
+
+
 export interface Task {
     id: string;
     title: string;
@@ -12,6 +25,7 @@ export interface Task {
     assignee?: { id: string; name: string; email: string } | null;
     tags: Array<{ tag: { id: string; name: string; color?: string } }>;
     subTasks: Array<{ id: string; title: string; status: string; priority: string }>;
+    attachments?: Attachment[];
     _count: { comments: number; attachments: number };
     createdAt: string;
     updatedAt: string;
@@ -98,4 +112,24 @@ export const notificationsApi = {
 
     markAllRead: () =>
         api.post('/notifications/read-all').then(r => r.data),
+};
+
+// ─── Attachments API ─────────────────────────────────
+
+export const attachmentsApi = {
+    upload: (taskId: string, file: File) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        return api.post(`/attachments/task/${taskId}`, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        }).then(r => r.data);
+    },
+
+    list: (taskId: string) =>
+        api.get(`/attachments/task/${taskId}`).then(r => r.data),
+
+    remove: (attachmentId: string) =>
+        api.delete(`/attachments/${attachmentId}`).then(r => r.data),
 };

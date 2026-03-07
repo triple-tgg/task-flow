@@ -11,6 +11,7 @@ import {
     GripVertical,
     Trash2,
     Save,
+    Tag,
 } from 'lucide-react';
 import {
     DndContext,
@@ -31,6 +32,8 @@ import { tasksApi } from '../api/tasks';
 import type { Task, KanbanBoard } from '../api/tasks';
 import { useProjectsStore } from '../stores/projectsStore';
 import Sidebar from '../components/Sidebar';
+import { TaskAttachments } from '../components/tasks/TaskAttachments';
+import RichTextEditor from '../components/RichTextEditor';
 
 const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
     todo: { label: 'To Do', color: '#64748b' },
@@ -169,6 +172,7 @@ export default function ProjectDetailPage() {
     const [editDescription, setEditDescription] = useState('');
     const [editDueDate, setEditDueDate] = useState('');
     const [isSaving, setIsSaving] = useState(false);
+    const [tagInput, setTagInput] = useState('');
 
     const sensors = useSensors(
         useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -197,6 +201,7 @@ export default function ProjectDetailPage() {
         setEditPriority(task.priority);
         setEditDescription(task.description || '');
         setEditDueDate(task.dueDate ? task.dueDate.split('T')[0] : '');
+        setTagInput('');
     };
 
     const handleCreateTask = async () => {
@@ -444,127 +449,204 @@ export default function ProjectDetailPage() {
                 {selectedTask && (
                     <div className="task-sidebar-overlay" onClick={() => setSelectedTask(null)}>
                         <div className="task-sidebar" onClick={(e) => e.stopPropagation()}>
-                            <div className="sidebar-header">
-                                <h3>{selectedTask.title}</h3>
-                                <button className="btn-icon" onClick={() => setSelectedTask(null)}>
+                            {/* Header */}
+                            <div className="ts-header">
+                                <div className="ts-header-content">
+                                    <h3 className="ts-title">{selectedTask.title}</h3>
+                                    <div className="ts-badges">
+                                        <span
+                                            className="ts-status-badge"
+                                            style={{
+                                                color: STATUS_CONFIG[selectedTask.status]?.color,
+                                                borderColor: STATUS_CONFIG[selectedTask.status]?.color,
+                                                background: `${STATUS_CONFIG[selectedTask.status]?.color}15`,
+                                            }}
+                                        >
+                                            <span className="ts-badge-dot" style={{ background: STATUS_CONFIG[selectedTask.status]?.color }} />
+                                            {STATUS_CONFIG[selectedTask.status]?.label}
+                                        </span>
+                                        <span
+                                            className="ts-priority-badge"
+                                            style={{
+                                                color: PRIORITY_CONFIG[selectedTask.priority]?.color,
+                                                borderColor: PRIORITY_CONFIG[selectedTask.priority]?.color,
+                                                background: `${PRIORITY_CONFIG[selectedTask.priority]?.color}15`,
+                                            }}
+                                        >
+                                            {PRIORITY_CONFIG[selectedTask.priority]?.label}
+                                        </span>
+                                    </div>
+                                </div>
+                                <button className="ts-close-btn" onClick={() => setSelectedTask(null)}>
                                     <X size={18} />
                                 </button>
                             </div>
 
-                            <div className="sidebar-body">
-                                {/* Status */}
-                                <div className="sidebar-field">
-                                    <label>Status</label>
-                                    <select
-                                        value={selectedTask.status}
-                                        onChange={(e) => handleStatusChange(selectedTask, e.target.value)}
-                                        className="form-input"
-                                    >
-                                        {Object.entries(STATUS_CONFIG).map(([key, cfg]) => (
-                                            <option key={key} value={key}>{cfg.label}</option>
-                                        ))}
-                                    </select>
+                            <div className="ts-body">
+                                {/* Properties Grid (2x2) */}
+                                <div className="ts-props-grid">
+                                    <div className="ts-prop-card">
+                                        <label>Status</label>
+                                        <select
+                                            value={selectedTask.status}
+                                            onChange={(e) => handleStatusChange(selectedTask, e.target.value)}
+                                        >
+                                            {Object.entries(STATUS_CONFIG).map(([key, cfg]) => (
+                                                <option key={key} value={key}>{cfg.label}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div className="ts-prop-card">
+                                        <label>Priority</label>
+                                        <select
+                                            value={editPriority}
+                                            onChange={(e) => setEditPriority(e.target.value)}
+                                        >
+                                            {Object.entries(PRIORITY_CONFIG).map(([key, cfg]) => (
+                                                <option key={key} value={key}>{cfg.label}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div className="ts-prop-card">
+                                        <label>Due Date</label>
+                                        <input
+                                            type="date"
+                                            value={editDueDate}
+                                            onChange={(e) => setEditDueDate(e.target.value)}
+                                        />
+                                    </div>
+                                    <div className="ts-prop-card">
+                                        <label>Assignee</label>
+                                        <div className="ts-assignee">
+                                            {selectedTask.assignee ? (
+                                                <>
+                                                    <div className="ts-avatar">{selectedTask.assignee.name.charAt(0).toUpperCase()}</div>
+                                                    <span>{selectedTask.assignee.name}</span>
+                                                </>
+                                            ) : (
+                                                <span className="ts-unassigned">Unassigned</span>
+                                            )}
+                                        </div>
+                                    </div>
                                 </div>
 
-                                {/* Priority (editable) */}
-                                <div className="sidebar-field">
-                                    <label>Priority</label>
-                                    <select
-                                        value={editPriority}
-                                        onChange={(e) => setEditPriority(e.target.value)}
-                                        className="form-input"
-                                    >
-                                        {Object.entries(PRIORITY_CONFIG).map(([key, cfg]) => (
-                                            <option key={key} value={key}>{cfg.label}</option>
-                                        ))}
-                                    </select>
-                                </div>
-
-                                {/* Due Date (editable) */}
-                                <div className="sidebar-field">
-                                    <label>Due Date</label>
-                                    <input
-                                        type="date"
-                                        className="form-input"
-                                        value={editDueDate}
-                                        onChange={(e) => setEditDueDate(e.target.value)}
-                                    />
-                                </div>
-
-                                {/* Description (editable) */}
-                                <div className="sidebar-field">
-                                    <label>Description</label>
-                                    <textarea
-                                        className="form-input"
-                                        rows={4}
-                                        value={editDescription}
-                                        onChange={(e) => setEditDescription(e.target.value)}
+                                {/* Description (Rich Text Editor) */}
+                                <div className="ts-section">
+                                    <label className="ts-section-label">Description</label>
+                                    <RichTextEditor
+                                        content={editDescription}
+                                        onChange={(html) => setEditDescription(html)}
                                         placeholder="Add a description..."
                                     />
                                 </div>
 
-                                {/* Save button */}
-                                {(editPriority !== selectedTask.priority ||
-                                    editDescription !== (selectedTask.description || '') ||
-                                    editDueDate !== (selectedTask.dueDate ? selectedTask.dueDate.split('T')[0] : '')) && (
-                                        <button
-                                            className="btn-primary"
-                                            onClick={handleSaveTaskEdits}
-                                            disabled={isSaving}
-                                            style={{ width: '100%', marginBottom: '0.75rem' }}
-                                        >
-                                            {isSaving ? (
-                                                <div className="spinner" style={{ width: 16, height: 16 }} />
-                                            ) : (
-                                                <>
-                                                    <Save size={14} />
-                                                    Save Changes
-                                                </>
-                                            )}
-                                        </button>
-                                    )}
-
-                                {/* Assignee */}
-                                <div className="sidebar-field">
-                                    <label>Assignee</label>
-                                    <span>{selectedTask.assignee?.name || 'Unassigned'}</span>
+                                {/* Tags */}
+                                <div className="ts-section">
+                                    <label className="ts-section-label">
+                                        <Tag size={12} />
+                                        Tags
+                                    </label>
+                                    <div className="ts-tags">
+                                        {selectedTask.tags.map((t) => (
+                                            <span key={t.tag.id} className="ts-tag">
+                                                {t.tag.name}
+                                                <button
+                                                    className="ts-tag-remove"
+                                                    onClick={async () => {
+                                                        if (!projectId) return;
+                                                        const newTags = selectedTask.tags
+                                                            .filter(tag => tag.tag.id !== t.tag.id)
+                                                            .map(tag => tag.tag.name);
+                                                        try {
+                                                            const updated = await tasksApi.updateTags(selectedTask.id, projectId, newTags);
+                                                            setSelectedTask(updated);
+                                                            await fetchBoard();
+                                                        } catch (err) {
+                                                            console.error('Failed to remove tag', err);
+                                                        }
+                                                    }}
+                                                >
+                                                    <X size={10} />
+                                                </button>
+                                            </span>
+                                        ))}
+                                        <input
+                                            className="ts-tag-input"
+                                            placeholder="+ Add tag"
+                                            value={tagInput}
+                                            onChange={(e) => setTagInput(e.target.value)}
+                                            onKeyDown={async (e) => {
+                                                if (e.key === 'Enter' && tagInput.trim() && projectId) {
+                                                    e.preventDefault();
+                                                    const currentTags = selectedTask.tags.map(t => t.tag.name);
+                                                    if (currentTags.includes(tagInput.trim())) {
+                                                        setTagInput('');
+                                                        return;
+                                                    }
+                                                    try {
+                                                        const updated = await tasksApi.updateTags(
+                                                            selectedTask.id, projectId, [...currentTags, tagInput.trim()]
+                                                        );
+                                                        setSelectedTask(updated);
+                                                        setTagInput('');
+                                                        await fetchBoard();
+                                                    } catch (err) {
+                                                        console.error('Failed to add tag', err);
+                                                    }
+                                                }
+                                            }}
+                                        />
+                                    </div>
                                 </div>
 
-                                {/* Tags */}
-                                {selectedTask.tags.length > 0 && (
-                                    <div className="sidebar-field">
-                                        <label>Tags</label>
-                                        <div className="task-tags">
-                                            {selectedTask.tags.map((t) => (
-                                                <span key={t.tag.id} className="tag-badge">{t.tag.name}</span>
+                                {/* Subtasks */}
+                                {selectedTask.subTasks.length > 0 && (
+                                    <div className="ts-section">
+                                        <label className="ts-section-label">
+                                            Subtasks ({selectedTask.subTasks.filter(s => s.status === 'done').length}/{selectedTask.subTasks.length})
+                                        </label>
+                                        <div className="ts-subtasks">
+                                            {selectedTask.subTasks.map((sub) => (
+                                                <div key={sub.id} className={`ts-subtask ${sub.status === 'done' ? 'completed' : ''}`}>
+                                                    <div className={`ts-check ${sub.status === 'done' ? 'checked' : ''}`} />
+                                                    <span>{sub.title}</span>
+                                                </div>
                                             ))}
                                         </div>
                                     </div>
                                 )}
 
-                                {/* Subtasks */}
-                                {selectedTask.subTasks.length > 0 && (
-                                    <div className="sidebar-field">
-                                        <label>Subtasks ({selectedTask.subTasks.filter(s => s.status === 'done').length}/{selectedTask.subTasks.length})</label>
-                                        {selectedTask.subTasks.map((sub) => (
-                                            <div key={sub.id} className="subtask-item">
-                                                <span className={sub.status === 'done' ? 'completed' : ''}>
-                                                    {sub.title}
-                                                </span>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
+                                {/* Attachments */}
+                                <TaskAttachments taskId={selectedTask.id} />
 
-                                {/* Delete */}
-                                <button
-                                    className="btn-danger"
-                                    onClick={() => handleDeleteTask(selectedTask.id)}
-                                    style={{ marginTop: 16, width: '100%' }}
-                                >
-                                    <Trash2 size={14} />
-                                    Delete Task
-                                </button>
+                                {/* Action Buttons Row */}
+                                <div className="ts-action-row">
+                                    <button
+                                        className="ts-save-btn"
+                                        onClick={handleSaveTaskEdits}
+                                        disabled={isSaving || (
+                                            editPriority === selectedTask.priority &&
+                                            editDescription === (selectedTask.description || '') &&
+                                            editDueDate === (selectedTask.dueDate ? selectedTask.dueDate.split('T')[0] : '')
+                                        )}
+                                    >
+                                        {isSaving ? (
+                                            <div className="spinner" style={{ width: 16, height: 16 }} />
+                                        ) : (
+                                            <>
+                                                <Save size={14} />
+                                                Save Changes
+                                            </>
+                                        )}
+                                    </button>
+                                    <button
+                                        className="ts-delete-btn"
+                                        onClick={() => handleDeleteTask(selectedTask.id)}
+                                    >
+                                        <Trash2 size={14} />
+                                        Delete Task
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
