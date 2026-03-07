@@ -207,6 +207,7 @@ export default function ProjectDetailPage() {
     const [sidebarTab, setSidebarTab] = useState<'detail' | 'description' | 'comments' | 'activities'>('detail');
     const [isExpanded, setIsExpanded] = useState(false);
     const [todoInput, setTodoInput] = useState('');
+    const [editSubTasks, setEditSubTasks] = useState<Array<{ id: string; title: string; status: string; priority: string; _new?: boolean; _deleted?: boolean }>>([]);
 
     const sensors = useSensors(
         useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -235,7 +236,9 @@ export default function ProjectDetailPage() {
         setEditPriority(task.priority);
         setEditDescription(task.description || '');
         setEditDueDate(task.dueDate ? task.dueDate.split('T')[0] : '');
+        setEditSubTasks(task.subTasks.map(s => ({ id: s.id, title: s.title, status: s.status, priority: s.priority })));
         setTagInput('');
+        setTodoInput('');
         setCommentText('');
         // Fetch comments
         commentsApi.list(task.id).then((res: { data: typeof comments }) => {
@@ -279,18 +282,43 @@ export default function ProjectDetailPage() {
         if (!selectedTask || !projectId) return;
         setIsSaving(true);
         try {
+            // Save task fields
             await tasksApi.update(selectedTask.id, projectId, {
                 priority: editPriority,
                 description: editDescription,
                 dueDate: editDueDate ? new Date(editDueDate).toISOString() : undefined,
             });
+
+            // Save subtask changes
+            const originalIds = new Set(selectedTask.subTasks.map(s => s.id));
+            const activeEdits = editSubTasks.filter(s => !s._deleted);
+
+            // Create new subtasks
+            for (const sub of activeEdits.filter(s => s._new)) {
+                await tasksApi.create(projectId, {
+                    title: sub.title,
+                    parentId: selectedTask.id,
+                } as any);
+            }
+
+            // Delete removed subtasks
+            for (const sub of editSubTasks.filter(s => s._deleted && originalIds.has(s.id))) {
+                await tasksApi.remove(sub.id, projectId);
+            }
+
+            // Update toggled subtasks
+            for (const sub of activeEdits.filter(s => !s._new && originalIds.has(s.id))) {
+                const original = selectedTask.subTasks.find(o => o.id === sub.id);
+                if (original && original.status !== sub.status) {
+                    await tasksApi.update(sub.id, projectId, { status: sub.status });
+                }
+            }
+
             await fetchBoard();
-            setSelectedTask({
-                ...selectedTask,
-                priority: editPriority,
-                description: editDescription,
-                dueDate: editDueDate ? new Date(editDueDate).toISOString() : selectedTask.dueDate,
-            });
+            // Re-fetch task to get updated subtasks with real IDs
+            const updatedTask = await tasksApi.getById(selectedTask.id, projectId);
+            setSelectedTask(updatedTask);
+            setEditSubTasks(updatedTask.subTasks.map((s: any) => ({ id: s.id, title: s.title, status: s.status, priority: s.priority })));
         } catch (err) {
             console.error('Failed to update task', err);
         } finally {
@@ -423,6 +451,13 @@ export default function ProjectDetailPage() {
                             <Plus size={16} />
                             Add Task
                         </button>
+                        {/* <button
+                            className="sidebar-new-task"
+                            onClick={() => navigate('/projects')}
+                        >
+                            <Plus size={16} />
+                            New Task
+                        </button> */}
                     </div>
                 </div>
 
@@ -705,7 +740,7 @@ export default function ProjectDetailPage() {
                                                 </div>
                                             </div>
                                             {/* Progress Bar */}
-                                            {selectedTask.subTasks.length > 0 && (
+                                            {editSubTasks.filter(s => !s._deleted).length > 0 && (
                                                 <div className="ts-prop-row" style={{ alignItems: 'flex-start', borderBottom: 'none' }}>
                                                     <span className="ts-prop-label">Subtasks</span>
                                                     <div className="ts-prop-value">
@@ -713,11 +748,11 @@ export default function ProjectDetailPage() {
                                                             <div className="ts-progress-bar">
                                                                 <div
                                                                     className="ts-progress-fill"
-                                                                    style={{ width: `${Math.round((selectedTask.subTasks.filter(s => s.status === 'done').length / selectedTask.subTasks.length) * 100)}%` }}
+                                                                    style={{ width: `${Math.round((editSubTasks.filter(s => !s._deleted && s.status === 'done').length / editSubTasks.filter(s => !s._deleted).length) * 100)}%` }}
                                                                 />
                                                             </div>
                                                             <span className="ts-progress-text">
-                                                                {selectedTask.subTasks.filter(s => s.status === 'done').length}/{selectedTask.subTasks.length} done
+                                                                {editSubTasks.filter(s => !s._deleted && s.status === 'done').length}/{editSubTasks.filter(s => !s._deleted).length} done
                                                             </span>
                                                         </div>
                                                     </div>
@@ -740,24 +775,19 @@ export default function ProjectDetailPage() {
                                             {/* Subtasks Checklist */}
                                             <div className="ts-todo-section">
                                                 <div className="ts-todo-header">
-                                                    <h4 className="ts-todo-title">Subtasks ({selectedTask.subTasks.filter(s => s.status === 'done').length}/{selectedTask.subTasks.length})</h4>
+                                                    <h4 className="ts-todo-title">Subtasks ({editSubTasks.filter(s => !s._deleted && s.status === 'done').length}/{editSubTasks.filter(s => !s._deleted).length})</h4>
                                                 </div>
 
                                                 <div className="ts-todo-list">
-                                                    {selectedTask.subTasks.map((sub) => (
+                                                    {editSubTasks.filter(s => !s._deleted).map((sub) => (
                                                         <div key={sub.id} className={`ts-todo-item ${sub.status === 'done' ? 'completed' : ''}`}>
                                                             <button
                                                                 className={`ts-todo-check ${sub.status === 'done' ? 'checked' : ''}`}
-                                                                onClick={async () => {
-                                                                    if (!projectId) return;
+                                                                onClick={() => {
                                                                     const newStatus = sub.status === 'done' ? 'todo' : 'done';
-                                                                    await tasksApi.update(sub.id, projectId, { status: newStatus });
-                                                                    setSelectedTask({
-                                                                        ...selectedTask,
-                                                                        subTasks: selectedTask.subTasks.map(s =>
-                                                                            s.id === sub.id ? { ...s, status: newStatus } : s
-                                                                        ),
-                                                                    });
+                                                                    setEditSubTasks(editSubTasks.map(s =>
+                                                                        s.id === sub.id ? { ...s, status: newStatus } : s
+                                                                    ));
                                                                 }}
                                                             >
                                                                 {sub.status === 'done' && (
@@ -772,13 +802,14 @@ export default function ProjectDetailPage() {
                                                             </span>
                                                             <button
                                                                 className="ts-todo-delete"
-                                                                onClick={async () => {
-                                                                    if (!projectId) return;
-                                                                    await tasksApi.remove(sub.id, projectId);
-                                                                    setSelectedTask({
-                                                                        ...selectedTask,
-                                                                        subTasks: selectedTask.subTasks.filter(s => s.id !== sub.id),
-                                                                    });
+                                                                onClick={() => {
+                                                                    if (sub._new) {
+                                                                        setEditSubTasks(editSubTasks.filter(s => s.id !== sub.id));
+                                                                    } else {
+                                                                        setEditSubTasks(editSubTasks.map(s =>
+                                                                            s.id === sub.id ? { ...s, _deleted: true } : s
+                                                                        ));
+                                                                    }
                                                                 }}
                                                             >
                                                                 <Trash2 size={12} />
@@ -790,30 +821,20 @@ export default function ProjectDetailPage() {
                                                 <div className="ts-todo-add">
                                                     <input
                                                         className="ts-todo-input"
-                                                        placeholder="Add a todo item..."
+                                                        placeholder="Add a subtask..."
                                                         value={todoInput}
                                                         onChange={(e) => setTodoInput(e.target.value)}
-                                                        onKeyDown={async (e) => {
-                                                            if (e.key === 'Enter' && todoInput.trim() && projectId) {
+                                                        onKeyDown={(e) => {
+                                                            if (e.key === 'Enter' && todoInput.trim()) {
                                                                 e.preventDefault();
-                                                                try {
-                                                                    const created = await tasksApi.create(projectId, {
-                                                                        title: todoInput.trim(),
-                                                                        parentId: selectedTask.id,
-                                                                    } as any);
-                                                                    setSelectedTask({
-                                                                        ...selectedTask,
-                                                                        subTasks: [...selectedTask.subTasks, {
-                                                                            id: created.id,
-                                                                            title: created.title,
-                                                                            status: created.status,
-                                                                            priority: created.priority,
-                                                                        }],
-                                                                    });
-                                                                    setTodoInput('');
-                                                                } catch (err) {
-                                                                    console.error('Failed to add todo', err);
-                                                                }
+                                                                setEditSubTasks([...editSubTasks, {
+                                                                    id: `new-${Date.now()}`,
+                                                                    title: todoInput.trim(),
+                                                                    status: 'todo',
+                                                                    priority: 'medium',
+                                                                    _new: true,
+                                                                }]);
+                                                                setTodoInput('');
                                                             }
                                                         }}
                                                     />
@@ -909,7 +930,9 @@ export default function ProjectDetailPage() {
                                     disabled={isSaving || (
                                         editPriority === selectedTask.priority &&
                                         editDescription === (selectedTask.description || '') &&
-                                        editDueDate === (selectedTask.dueDate ? selectedTask.dueDate.split('T')[0] : '')
+                                        editDueDate === (selectedTask.dueDate ? selectedTask.dueDate.split('T')[0] : '') &&
+                                        JSON.stringify(editSubTasks.filter(s => !s._deleted).map(s => ({ id: s.id, status: s.status }))) ===
+                                        JSON.stringify(selectedTask.subTasks.map(s => ({ id: s.id, status: s.status })))
                                     )}
                                 >
                                     {isSaving ? (

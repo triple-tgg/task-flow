@@ -259,6 +259,9 @@ a:hover {
 }
 
 .btn-primary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: var(--accent-gradient);
   color: white;
   border-radius: var(--radius-lg);
