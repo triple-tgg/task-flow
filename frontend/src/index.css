@@ -1671,8 +1671,8 @@ a:hover {
 .task-sidebar {
   width: 440px;
   max-width: 92vw;
-  background: var(--bg-secondary);
-  border-left: 1px solid var(--border-color);
+  background: #0f0f1a;
+  border-left: 1px solid rgba(108, 99, 255, 0.1);
   display: flex;
   flex-direction: column;
   overflow-y: auto;
@@ -1685,7 +1685,7 @@ a:hover {
   align-items: flex-start;
   justify-content: space-between;
   padding: 1.5rem;
-  border-bottom: 1px solid var(--border-subtle);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   gap: 0.75rem;
 }
 
@@ -1764,33 +1764,37 @@ a:hover {
 }
 
 .ts-prop-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border-subtle);
+  background: rgba(20, 20, 40, 0.8);
+  border: 1px solid rgba(108, 99, 255, 0.12);
   border-radius: var(--radius-md);
   padding: 0.75rem;
   transition: border-color var(--transition-fast);
 }
 
 .ts-prop-card:hover {
-  border-color: var(--border-color);
+  border-color: rgba(108, 99, 255, 0.25);
 }
 
 .ts-prop-card label {
-  display: block;
-  font-size: 0.68rem;
-  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.72rem;
+  font-weight: 500;
   color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
   margin-bottom: 0.4rem;
+}
+
+.ts-label-icon {
+  font-size: 0.6rem;
 }
 
 .ts-prop-card select,
 .ts-prop-card input {
   width: 100%;
   padding: 0.35rem 0.5rem;
-  background: var(--bg-input);
-  border: 1px solid var(--border-subtle);
+  background: rgba(12, 12, 24, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: var(--radius-sm);
   color: var(--text-primary);
   font-size: 0.82rem;
@@ -1908,11 +1912,10 @@ a:hover {
   display: flex;
   align-items: center;
   gap: 0.35rem;
-  font-size: 0.72rem;
+  font-size: 0.78rem;
   font-weight: 600;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  color: var(--text-secondary);
+  letter-spacing: 0.3px;
   margin-bottom: 0.5rem;
 }
 
@@ -1930,9 +1933,9 @@ a:hover {
   padding: 0.4rem 0.6rem;
   font-size: 0.82rem;
   color: var(--text-secondary);
-  background: var(--bg-card);
+  background: rgba(20, 20, 40, 0.6);
   border-radius: var(--radius-sm);
-  border: 1px solid var(--border-subtle);
+  border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .ts-subtask.completed span {
@@ -2015,10 +2018,10 @@ a:hover {
 /* ─── Rich Text Editor (TipTap) ──────────────────────── */
 
 .rich-editor-wrapper {
-  border: 1px solid var(--border-subtle);
+  border: 1px solid rgba(108, 99, 255, 0.12);
   border-radius: var(--radius-md);
   overflow: hidden;
-  background: var(--bg-card);
+  background: rgba(20, 20, 40, 0.6);
   transition: border-color var(--transition-fast);
 }
 
@@ -2031,8 +2034,8 @@ a:hover {
   align-items: center;
   gap: 2px;
   padding: 0.4rem;
-  border-bottom: 1px solid var(--border-subtle);
-  background: var(--bg-input);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(12, 12, 24, 0.8);
   flex-wrap: wrap;
 }
 
@@ -2229,14 +2232,14 @@ a:hover {
   align-items: center;
   gap: 0.65rem;
   padding: 0.5rem 0.65rem;
-  background: var(--bg-card);
-  border: 1px solid var(--border-subtle);
+  background: rgba(20, 20, 40, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: var(--radius-md);
   transition: all var(--transition-fast);
 }
 
 .att-file-card:hover {
-  border-color: var(--border-color);
+  border-color: rgba(108, 99, 255, 0.2);
   box-shadow: var(--shadow-sm);
 }
 
@@ -2244,7 +2247,7 @@ a:hover {
   width: 36px;
   height: 36px;
   border-radius: var(--radius-sm);
-  background: var(--bg-input);
+  background: rgba(12, 12, 24, 0.8);
   display: flex;
   align-items: center;
   justify-content: center;

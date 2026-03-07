@@ -12,6 +12,9 @@ import {
     Trash2,
     Save,
     Tag,
+    Circle,
+    Square,
+    Calendar,
 } from 'lucide-react';
 import {
     DndContext,
@@ -484,9 +487,10 @@ export default function ProjectDetailPage() {
 
                             <div className="ts-body">
                                 {/* Properties Grid (2x2) */}
+                                <label className="ts-section-label">Properties</label>
                                 <div className="ts-props-grid">
                                     <div className="ts-prop-card">
-                                        <label>Status</label>
+                                        <label><Circle size={8} fill="#3b82f6" color="#3b82f6" /> Status</label>
                                         <select
                                             value={selectedTask.status}
                                             onChange={(e) => handleStatusChange(selectedTask, e.target.value)}
@@ -497,7 +501,7 @@ export default function ProjectDetailPage() {
                                         </select>
                                     </div>
                                     <div className="ts-prop-card">
-                                        <label>Priority</label>
+                                        <label><Square size={8} fill="#f59e0b" color="#f59e0b" /> Priority</label>
                                         <select
                                             value={editPriority}
                                             onChange={(e) => setEditPriority(e.target.value)}
@@ -508,7 +512,7 @@ export default function ProjectDetailPage() {
                                         </select>
                                     </div>
                                     <div className="ts-prop-card">
-                                        <label>Due Date</label>
+                                        <label><Calendar size={10} /> Due Date</label>
                                         <input
                                             type="date"
                                             value={editDueDate}
