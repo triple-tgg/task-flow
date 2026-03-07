@@ -12,6 +12,8 @@ import {
     Trash2,
     Save,
     Link2,
+    Maximize2,
+    Minimize2,
     Send,
 } from 'lucide-react';
 import {
@@ -201,6 +203,7 @@ export default function ProjectDetailPage() {
     const [commentText, setCommentText] = useState('');
     const [isSendingComment, setIsSendingComment] = useState(false);
     const [sidebarTab, setSidebarTab] = useState<'description' | 'comments' | 'activities'>('description');
+    const [isExpanded, setIsExpanded] = useState(false);
 
     const sensors = useSensors(
         useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -486,13 +489,18 @@ export default function ProjectDetailPage() {
                 {/* Editable Task Detail Sidebar */}
                 {selectedTask && (
                     <div className="task-sidebar-overlay" onClick={() => setSelectedTask(null)}>
-                        <div className="task-sidebar" onClick={(e) => e.stopPropagation()}>
+                        <div className={`task-sidebar ${isExpanded ? 'expanded' : ''}`} onClick={(e) => e.stopPropagation()}>
                             {/* Header */}
                             <div className="ts-header">
                                 <h2 className="ts-title-lg">{selectedTask.title}</h2>
-                                <button className="ts-close-btn" onClick={() => setSelectedTask(null)}>
-                                    <X size={18} />
-                                </button>
+                                <div className="ts-header-actions">
+                                    <button className="ts-expand-btn" onClick={() => setIsExpanded(!isExpanded)} title={isExpanded ? 'Collapse' : 'Expand'}>
+                                        {isExpanded ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+                                    </button>
+                                    <button className="ts-close-btn" onClick={() => { setSelectedTask(null); setIsExpanded(false); }}>
+                                        <X size={18} />
+                                    </button>
+                                </div>
                             </div>
 
                             <div className="ts-body">
@@ -741,35 +749,35 @@ export default function ProjectDetailPage() {
                                 <div className="ts-bottom-section">
                                     <TaskAttachments taskId={selectedTask.id} />
                                 </div>
+                            </div>
 
-                                {/* Action Buttons */}
-                                <div className="ts-action-row">
-                                    <button
-                                        className="ts-save-btn"
-                                        onClick={handleSaveTaskEdits}
-                                        disabled={isSaving || (
-                                            editPriority === selectedTask.priority &&
-                                            editDescription === (selectedTask.description || '') &&
-                                            editDueDate === (selectedTask.dueDate ? selectedTask.dueDate.split('T')[0] : '')
-                                        )}
-                                    >
-                                        {isSaving ? (
-                                            <div className="spinner" style={{ width: 16, height: 16 }} />
-                                        ) : (
-                                            <>
-                                                <Save size={14} />
-                                                Save Changes
-                                            </>
-                                        )}
-                                    </button>
-                                    <button
-                                        className="ts-delete-btn"
-                                        onClick={() => handleDeleteTask(selectedTask.id)}
-                                    >
-                                        <Trash2 size={14} />
-                                        Delete Task
-                                    </button>
-                                </div>
+                            {/* Action Footer - outside scrollable body */}
+                            <div className="ts-action-row">
+                                <button
+                                    className="ts-save-btn"
+                                    onClick={handleSaveTaskEdits}
+                                    disabled={isSaving || (
+                                        editPriority === selectedTask.priority &&
+                                        editDescription === (selectedTask.description || '') &&
+                                        editDueDate === (selectedTask.dueDate ? selectedTask.dueDate.split('T')[0] : '')
+                                    )}
+                                >
+                                    {isSaving ? (
+                                        <div className="spinner" style={{ width: 16, height: 16 }} />
+                                    ) : (
+                                        <>
+                                            <Save size={14} />
+                                            Save Changes
+                                        </>
+                                    )}
+                                </button>
+                                <button
+                                    className="ts-delete-btn"
+                                    onClick={() => handleDeleteTask(selectedTask.id)}
+                                >
+                                    <Trash2 size={14} />
+                                    Delete Task
+                                </button>
                             </div>
                         </div>
                     </div>
