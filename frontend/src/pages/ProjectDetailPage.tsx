@@ -104,12 +104,15 @@ function SortableTaskCard({ task, onClick }: { task: Task; onClick: () => void }
 
             <h4 className="task-title">{task.title}</h4>
 
-            {task.description && (
-                <p className="task-desc">
-                    {task.description.substring(0, 80)}
-                    {task.description.length > 80 ? '...' : ''}
-                </p>
-            )}
+            {task.description && (() => {
+                const plainText = task.description.replace(/<[^>]*>/g, '').trim();
+                return plainText ? (
+                    <p className="task-desc">
+                        {plainText.substring(0, 80)}
+                        {plainText.length > 80 ? '...' : ''}
+                    </p>
+                ) : null;
+            })()}
 
             <div className="task-meta">
                 {task.dueDate && (
