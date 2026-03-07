@@ -19,10 +19,11 @@ import {
 import {
     DndContext,
     DragOverlay,
-    closestCorners,
+    pointerWithin,
     PointerSensor,
     useSensor,
     useSensors,
+    useDroppable,
 } from '@dnd-kit/core';
 import type { DragStartEvent, DragEndEvent, DragOverEvent } from '@dnd-kit/core';
 import {
@@ -51,6 +52,21 @@ const PRIORITY_CONFIG: Record<string, { label: string; color: string }> = {
     high: { label: 'High', color: '#f59e0b' },
     urgent: { label: 'Urgent', color: '#ef4444' },
 };
+
+// ─── Droppable Column Wrapper ──────────────────────────
+function DroppableColumn({ id, children }: { id: string; children: React.ReactNode }) {
+    const { setNodeRef, isOver } = useDroppable({ id });
+    return (
+        <div
+            ref={setNodeRef}
+            className="kanban-cards"
+            data-column={id}
+            style={{ background: isOver ? 'rgba(108, 99, 255, 0.06)' : undefined, borderRadius: '8px', transition: 'background 150ms ease' }}
+        >
+            {children}
+        </div>
+    );
+}
 
 // ─── Sortable Task Card ────────────────────────────────
 function SortableTaskCard({ task, onClick }: { task: Task; onClick: () => void }) {
@@ -332,18 +348,14 @@ export default function ProjectDetailPage() {
         const activeId = active.id as string;
         const newCol = findColumnForTask(activeId);
 
-        if (newCol) {
-            // Persist status change to backend
-            const task = board[newCol as keyof KanbanBoard]?.find((t) => t.id === activeId);
-            if (task && task.status !== newCol) {
-                // already updated locally, now persist
-            }
-            try {
-                await tasksApi.update(activeId, projectId, { status: newCol });
-            } catch (err) {
-                console.error('Failed to move task', err);
-                await fetchBoard(); // rollback
-            }
+        if (!newCol) return;
+
+        try {
+            await tasksApi.update(activeId, projectId, { status: newCol });
+            await fetchBoard(); // refetch to ensure consistency
+        } catch (err) {
+            console.error('Failed to move task', err);
+            await fetchBoard(); // rollback on error
         }
     };
 
@@ -394,7 +406,7 @@ export default function ProjectDetailPage() {
                     ) : (
                         <DndContext
                             sensors={sensors}
-                            collisionDetection={closestCorners}
+                            collisionDetection={pointerWithin}
                             onDragStart={handleDragStart}
                             onDragOver={handleDragOver}
                             onDragEnd={handleDragEnd}
@@ -426,7 +438,7 @@ export default function ProjectDetailPage() {
                                                 strategy={verticalListSortingStrategy}
                                                 id={status}
                                             >
-                                                <div className="kanban-cards" data-column={status}>
+                                                <DroppableColumn id={status}>
                                                     {columnTasks.map((task) => (
                                                         <SortableTaskCard
                                                             key={task.id}
@@ -434,7 +446,7 @@ export default function ProjectDetailPage() {
                                                             onClick={() => openTaskDetail(task)}
                                                         />
                                                     ))}
-                                                </div>
+                                                </DroppableColumn>
                                             </SortableContext>
                                         </div>
                                     );
