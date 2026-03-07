@@ -27,9 +27,10 @@ let AttachmentsService = class AttachmentsService {
         if (!task) {
             throw new common_1.NotFoundException(`Task with ID ${taskId} not found`);
         }
+        const decodedFilename = Buffer.from(file.originalname, 'latin1').toString('utf-8');
         const fileData = {
             buffer: file.buffer,
-            originalname: file.originalname,
+            originalname: decodedFilename,
             mimetype: file.mimetype,
             size: file.size,
         };

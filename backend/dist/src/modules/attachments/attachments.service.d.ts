@@ -7,26 +7,26 @@ export declare class AttachmentsService {
     uploadAttachment(taskId: string, userId: string, file: Express.Multer.File): Promise<{
         url: string;
         id: string;
-        createdAt: Date;
-        deletedAt: Date | null;
-        userId: string;
-        taskId: string;
         filename: string;
+        storagePath: string;
         size: number;
         mimeType: string;
-        storagePath: string;
+        createdAt: Date;
+        deletedAt: Date | null;
+        taskId: string;
+        userId: string;
     }>;
     getAttachment(attachmentId: string): Promise<{
         url: string;
         id: string;
-        createdAt: Date;
-        deletedAt: Date | null;
-        userId: string;
-        taskId: string;
         filename: string;
+        storagePath: string;
         size: number;
         mimeType: string;
-        storagePath: string;
+        createdAt: Date;
+        deletedAt: Date | null;
+        taskId: string;
+        userId: string;
     }>;
     deleteAttachment(attachmentId: string, userId: string): Promise<{
         message: string;
@@ -34,13 +34,13 @@ export declare class AttachmentsService {
     getAttachmentsForTask(taskId: string): Promise<{
         url: string;
         id: string;
-        createdAt: Date;
-        deletedAt: Date | null;
-        userId: string;
-        taskId: string;
         filename: string;
+        storagePath: string;
         size: number;
         mimeType: string;
-        storagePath: string;
+        createdAt: Date;
+        deletedAt: Date | null;
+        taskId: string;
+        userId: string;
     }[]>;
 }

@@ -30,9 +30,11 @@ export class AttachmentsService {
         // (We will assume standard access for now, in a real app check projectMembers)
 
         // 2. Map Express.Multer.File to our generic FileData
+        // Multer encodes originalname as Latin1 — decode to UTF-8 for Thai/Unicode support
+        const decodedFilename = Buffer.from(file.originalname, 'latin1').toString('utf-8');
         const fileData: FileData = {
             buffer: file.buffer,
-            originalname: file.originalname,
+            originalname: decodedFilename,
             mimetype: file.mimetype,
             size: file.size,
         };

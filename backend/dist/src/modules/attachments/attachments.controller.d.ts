@@ -5,38 +5,38 @@ export declare class AttachmentsController {
     uploadAttachment(taskId: string, file: Express.Multer.File, req: any): Promise<{
         url: string;
         id: string;
-        createdAt: Date;
-        deletedAt: Date | null;
-        userId: string;
-        taskId: string;
         filename: string;
+        storagePath: string;
         size: number;
         mimeType: string;
-        storagePath: string;
+        createdAt: Date;
+        deletedAt: Date | null;
+        taskId: string;
+        userId: string;
     }>;
     getTasksAttachments(taskId: string): Promise<{
         url: string;
         id: string;
-        createdAt: Date;
-        deletedAt: Date | null;
-        userId: string;
-        taskId: string;
         filename: string;
+        storagePath: string;
         size: number;
         mimeType: string;
-        storagePath: string;
+        createdAt: Date;
+        deletedAt: Date | null;
+        taskId: string;
+        userId: string;
     }[]>;
     getAttachment(id: string): Promise<{
         url: string;
         id: string;
-        createdAt: Date;
-        deletedAt: Date | null;
-        userId: string;
-        taskId: string;
         filename: string;
+        storagePath: string;
         size: number;
         mimeType: string;
-        storagePath: string;
+        createdAt: Date;
+        deletedAt: Date | null;
+        taskId: string;
+        userId: string;
     }>;
     deleteAttachment(id: string, req: any): Promise<{
         message: string;
