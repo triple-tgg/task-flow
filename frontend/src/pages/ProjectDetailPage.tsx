@@ -11,10 +11,6 @@ import {
     GripVertical,
     Trash2,
     Save,
-    Tag,
-    Circle,
-    Square,
-    Calendar,
     Link2,
     Send,
 } from 'lucide-react';
@@ -204,6 +200,7 @@ export default function ProjectDetailPage() {
     const [comments, setComments] = useState<Array<{ id: string; content: string; createdAt: string; user: { id: string; name: string } }>>([]);
     const [commentText, setCommentText] = useState('');
     const [isSendingComment, setIsSendingComment] = useState(false);
+    const [sidebarTab, setSidebarTab] = useState<'description' | 'comments' | 'activities'>('description');
 
     const sensors = useSensors(
         useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -492,159 +489,241 @@ export default function ProjectDetailPage() {
                         <div className="task-sidebar" onClick={(e) => e.stopPropagation()}>
                             {/* Header */}
                             <div className="ts-header">
-                                <div className="ts-header-content">
-                                    <h3 className="ts-title">{selectedTask.title}</h3>
-                                    <div className="ts-badges">
-                                        <span
-                                            className="ts-status-badge"
-                                            style={{
-                                                color: STATUS_CONFIG[selectedTask.status]?.color,
-                                                borderColor: STATUS_CONFIG[selectedTask.status]?.color,
-                                                background: `${STATUS_CONFIG[selectedTask.status]?.color}15`,
-                                            }}
-                                        >
-                                            <span className="ts-badge-dot" style={{ background: STATUS_CONFIG[selectedTask.status]?.color }} />
-                                            {STATUS_CONFIG[selectedTask.status]?.label}
-                                        </span>
-                                        <span
-                                            className="ts-priority-badge"
-                                            style={{
-                                                color: PRIORITY_CONFIG[selectedTask.priority]?.color,
-                                                borderColor: PRIORITY_CONFIG[selectedTask.priority]?.color,
-                                                background: `${PRIORITY_CONFIG[selectedTask.priority]?.color}15`,
-                                            }}
-                                        >
-                                            {PRIORITY_CONFIG[selectedTask.priority]?.label}
-                                        </span>
-                                    </div>
-                                </div>
+                                <h2 className="ts-title-lg">{selectedTask.title}</h2>
                                 <button className="ts-close-btn" onClick={() => setSelectedTask(null)}>
                                     <X size={18} />
                                 </button>
                             </div>
 
                             <div className="ts-body">
-                                {/* Properties Grid (2x2) */}
-                                <label className="ts-section-label">Properties</label>
-                                <div className="ts-props-grid">
-                                    <div className="ts-prop-card">
-                                        <label><Circle size={8} fill="#3b82f6" color="#3b82f6" /> Status</label>
-                                        <select
-                                            value={selectedTask.status}
-                                            onChange={(e) => handleStatusChange(selectedTask, e.target.value)}
-                                        >
-                                            {Object.entries(STATUS_CONFIG).map(([key, cfg]) => (
-                                                <option key={key} value={key}>{cfg.label}</option>
-                                            ))}
-                                        </select>
+
+                                {/* Property Rows */}
+                                <div className="ts-prop-rows">
+                                    <div className="ts-prop-row">
+                                        <span className="ts-prop-label">Priority</span>
+                                        <div className="ts-prop-value">
+                                            <select
+                                                className="ts-inline-select"
+                                                value={editPriority}
+                                                onChange={(e) => setEditPriority(e.target.value)}
+                                            >
+                                                {Object.entries(PRIORITY_CONFIG).map(([key, cfg]) => (
+                                                    <option key={key} value={key}>{cfg.label}</option>
+                                                ))}
+                                            </select>
+                                        </div>
                                     </div>
-                                    <div className="ts-prop-card">
-                                        <label><Square size={8} fill="#f59e0b" color="#f59e0b" /> Priority</label>
-                                        <select
-                                            value={editPriority}
-                                            onChange={(e) => setEditPriority(e.target.value)}
-                                        >
-                                            {Object.entries(PRIORITY_CONFIG).map(([key, cfg]) => (
-                                                <option key={key} value={key}>{cfg.label}</option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                    <div className="ts-prop-card">
-                                        <label><Calendar size={10} /> Due Date</label>
-                                        <input
-                                            type="date"
-                                            value={editDueDate}
-                                            onChange={(e) => setEditDueDate(e.target.value)}
-                                        />
-                                    </div>
-                                    <div className="ts-prop-card">
-                                        <label>Assignee</label>
-                                        <div className="ts-assignee">
+                                    <div className="ts-prop-row">
+                                        <span className="ts-prop-label">Assignee</span>
+                                        <div className="ts-prop-value">
                                             {selectedTask.assignee ? (
-                                                <>
-                                                    <div className="ts-avatar">{selectedTask.assignee.name.charAt(0).toUpperCase()}</div>
+                                                <div className="ts-assignee-chip">
+                                                    <div className="ts-avatar-sm">{selectedTask.assignee.name.charAt(0).toUpperCase()}</div>
                                                     <span>{selectedTask.assignee.name}</span>
-                                                </>
+                                                </div>
                                             ) : (
-                                                <span className="ts-unassigned">Unassigned</span>
+                                                <span className="ts-text-muted">Unassigned</span>
                                             )}
+                                        </div>
+                                    </div>
+                                    <div className="ts-prop-row">
+                                        <span className="ts-prop-label">Due date</span>
+                                        <div className="ts-prop-value">
+                                            <input
+                                                type="date"
+                                                className="ts-inline-date"
+                                                value={editDueDate}
+                                                onChange={(e) => setEditDueDate(e.target.value)}
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="ts-prop-row">
+                                        <span className="ts-prop-label">Status</span>
+                                        <div className="ts-prop-value">
+                                            <select
+                                                className="ts-inline-select"
+                                                value={selectedTask.status}
+                                                onChange={(e) => handleStatusChange(selectedTask, e.target.value)}
+                                            >
+                                                {Object.entries(STATUS_CONFIG).map(([key, cfg]) => (
+                                                    <option key={key} value={key}>{cfg.label}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div className="ts-prop-row">
+                                        <span className="ts-prop-label">Tags</span>
+                                        <div className="ts-prop-value">
+                                            <div className="ts-tags-inline">
+                                                {selectedTask.tags.map((t) => (
+                                                    <span key={t.tag.id} className="ts-tag">
+                                                        {t.tag.name}
+                                                        <button
+                                                            className="ts-tag-remove"
+                                                            onClick={async () => {
+                                                                if (!projectId) return;
+                                                                const newTags = selectedTask.tags
+                                                                    .filter(tag => tag.tag.id !== t.tag.id)
+                                                                    .map(tag => tag.tag.name);
+                                                                try {
+                                                                    const updated = await tasksApi.updateTags(selectedTask.id, projectId, newTags);
+                                                                    setSelectedTask(updated);
+                                                                    await fetchBoard();
+                                                                } catch (err) {
+                                                                    console.error('Failed to remove tag', err);
+                                                                }
+                                                            }}
+                                                        >
+                                                            <X size={10} />
+                                                        </button>
+                                                    </span>
+                                                ))}
+                                                <input
+                                                    className="ts-tag-input-inline"
+                                                    placeholder="Add more"
+                                                    value={tagInput}
+                                                    onChange={(e) => setTagInput(e.target.value)}
+                                                    onKeyDown={async (e) => {
+                                                        if (e.key === 'Enter' && tagInput.trim() && projectId) {
+                                                            e.preventDefault();
+                                                            const currentTags = selectedTask.tags.map(t => t.tag.name);
+                                                            if (currentTags.includes(tagInput.trim())) { setTagInput(''); return; }
+                                                            try {
+                                                                const updated = await tasksApi.updateTags(
+                                                                    selectedTask.id, projectId, [...currentTags, tagInput.trim()]
+                                                                );
+                                                                setSelectedTask(updated);
+                                                                setTagInput('');
+                                                                await fetchBoard();
+                                                            } catch (err) { console.error('Failed to add tag', err); }
+                                                        }
+                                                    }}
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="ts-prop-row">
+                                        <span className="ts-prop-label">Created by</span>
+                                        <div className="ts-prop-value">
+                                            <div className="ts-assignee-chip">
+                                                <div className="ts-avatar-sm">{selectedTask.creator.name.charAt(0).toUpperCase()}</div>
+                                                <span>{selectedTask.creator.name}</span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
 
-                                {/* Description (Rich Text Editor) */}
-                                <div className="ts-section">
-                                    <label className="ts-section-label">Description</label>
-                                    <RichTextEditor
-                                        content={editDescription}
-                                        onChange={(html) => setEditDescription(html)}
-                                        placeholder="Add a description..."
-                                    />
+                                {/* Tab Navigation */}
+                                <div className="ts-tab-nav">
+                                    <button
+                                        className={`ts-tab ${sidebarTab === 'description' ? 'active' : ''}`}
+                                        onClick={() => setSidebarTab('description')}
+                                    >
+                                        Description
+                                    </button>
+                                    <button
+                                        className={`ts-tab ${sidebarTab === 'comments' ? 'active' : ''}`}
+                                        onClick={() => setSidebarTab('comments')}
+                                    >
+                                        Comments {comments.length > 0 && <span className="ts-tab-count">{comments.length}</span>}
+                                    </button>
+                                    <button
+                                        className={`ts-tab ${sidebarTab === 'activities' ? 'active' : ''}`}
+                                        onClick={() => setSidebarTab('activities')}
+                                    >
+                                        Activities
+                                    </button>
                                 </div>
 
-                                {/* Tags */}
-                                <div className="ts-section">
-                                    <label className="ts-section-label">
-                                        <Tag size={12} />
-                                        Tags
-                                    </label>
-                                    <div className="ts-tags">
-                                        {selectedTask.tags.map((t) => (
-                                            <span key={t.tag.id} className="ts-tag">
-                                                {t.tag.name}
-                                                <button
-                                                    className="ts-tag-remove"
-                                                    onClick={async () => {
-                                                        if (!projectId) return;
-                                                        const newTags = selectedTask.tags
-                                                            .filter(tag => tag.tag.id !== t.tag.id)
-                                                            .map(tag => tag.tag.name);
-                                                        try {
-                                                            const updated = await tasksApi.updateTags(selectedTask.id, projectId, newTags);
-                                                            setSelectedTask(updated);
-                                                            await fetchBoard();
-                                                        } catch (err) {
-                                                            console.error('Failed to remove tag', err);
+                                {/* Tab Content */}
+                                <div className="ts-tab-content">
+                                    {sidebarTab === 'description' && (
+                                        <RichTextEditor
+                                            content={editDescription}
+                                            onChange={(html) => setEditDescription(html)}
+                                            placeholder="Add a description..."
+                                        />
+                                    )}
+
+                                    {sidebarTab === 'comments' && (
+                                        <div className="ts-comments-tab">
+                                            <div className="comment-input-row">
+                                                <input
+                                                    className="comment-input"
+                                                    placeholder="Write a comment..."
+                                                    value={commentText}
+                                                    onChange={(e) => setCommentText(e.target.value)}
+                                                    onKeyDown={async (e) => {
+                                                        if (e.key === 'Enter' && commentText.trim() && !isSendingComment) {
+                                                            e.preventDefault();
+                                                            setIsSendingComment(true);
+                                                            try {
+                                                                await commentsApi.create(selectedTask.id, commentText.trim());
+                                                                setCommentText('');
+                                                                const res = await commentsApi.list(selectedTask.id);
+                                                                setComments(res.data || []);
+                                                            } catch (err) { console.error('Failed to post comment', err); }
+                                                            finally { setIsSendingComment(false); }
                                                         }
                                                     }}
+                                                />
+                                                <button
+                                                    className="comment-send-btn"
+                                                    disabled={!commentText.trim() || isSendingComment}
+                                                    onClick={async () => {
+                                                        if (!commentText.trim() || isSendingComment) return;
+                                                        setIsSendingComment(true);
+                                                        try {
+                                                            await commentsApi.create(selectedTask.id, commentText.trim());
+                                                            setCommentText('');
+                                                            const res = await commentsApi.list(selectedTask.id);
+                                                            setComments(res.data || []);
+                                                        } catch (err) { console.error('Failed to post comment', err); }
+                                                        finally { setIsSendingComment(false); }
+                                                    }}
                                                 >
-                                                    <X size={10} />
+                                                    <Send size={14} />
                                                 </button>
-                                            </span>
-                                        ))}
-                                        <input
-                                            className="ts-tag-input"
-                                            placeholder="+ Add tag"
-                                            value={tagInput}
-                                            onChange={(e) => setTagInput(e.target.value)}
-                                            onKeyDown={async (e) => {
-                                                if (e.key === 'Enter' && tagInput.trim() && projectId) {
-                                                    e.preventDefault();
-                                                    const currentTags = selectedTask.tags.map(t => t.tag.name);
-                                                    if (currentTags.includes(tagInput.trim())) {
-                                                        setTagInput('');
-                                                        return;
-                                                    }
-                                                    try {
-                                                        const updated = await tasksApi.updateTags(
-                                                            selectedTask.id, projectId, [...currentTags, tagInput.trim()]
-                                                        );
-                                                        setSelectedTask(updated);
-                                                        setTagInput('');
-                                                        await fetchBoard();
-                                                    } catch (err) {
-                                                        console.error('Failed to add tag', err);
-                                                    }
-                                                }
-                                            }}
-                                        />
-                                    </div>
+                                            </div>
+                                            {comments.length > 0 && (
+                                                <div className="comment-list">
+                                                    {comments.map((c) => (
+                                                        <div key={c.id} className="comment-item">
+                                                            <div className="comment-header">
+                                                                <div className="comment-avatar">{c.user.name.charAt(0).toUpperCase()}</div>
+                                                                <div className="comment-meta">
+                                                                    <span className="comment-author">{c.user.name}</span>
+                                                                    <span className="comment-date">{new Date(c.createdAt).toLocaleDateString()}</span>
+                                                                </div>
+                                                                <button className="comment-delete-btn"
+                                                                    onClick={async () => {
+                                                                        try { await commentsApi.remove(selectedTask.id, c.id); setComments(prev => prev.filter(x => x.id !== c.id)); }
+                                                                        catch (err) { console.error('Failed to delete comment', err); }
+                                                                    }}
+                                                                >
+                                                                    <X size={12} />
+                                                                </button>
+                                                            </div>
+                                                            <p className="comment-content">{c.content}</p>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                            {comments.length === 0 && (
+                                                <p className="ts-empty-state">No comments yet</p>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {sidebarTab === 'activities' && (
+                                        <p className="ts-empty-state">No activities recorded</p>
+                                    )}
                                 </div>
 
                                 {/* Subtasks */}
                                 {selectedTask.subTasks.length > 0 && (
-                                    <div className="ts-section">
-                                        <label className="ts-section-label">
+                                    <div className="ts-bottom-section">
+                                        <label className="ts-bottom-label">
                                             Subtasks ({selectedTask.subTasks.filter(s => s.status === 'done').length}/{selectedTask.subTasks.length})
                                         </label>
                                         <div className="ts-subtasks">
@@ -659,94 +738,11 @@ export default function ProjectDetailPage() {
                                 )}
 
                                 {/* Attachments */}
-                                <TaskAttachments taskId={selectedTask.id} />
-
-                                {/* Comments Section */}
-                                <div className="ts-section">
-                                    <label className="ts-section-label">
-                                        <MessageSquare size={14} />
-                                        Comments ({comments.length})
-                                    </label>
-
-                                    {/* Comment Input */}
-                                    <div className="comment-input-row">
-                                        <input
-                                            className="comment-input"
-                                            placeholder="Write a comment..."
-                                            value={commentText}
-                                            onChange={(e) => setCommentText(e.target.value)}
-                                            onKeyDown={async (e) => {
-                                                if (e.key === 'Enter' && commentText.trim() && !isSendingComment) {
-                                                    e.preventDefault();
-                                                    setIsSendingComment(true);
-                                                    try {
-                                                        await commentsApi.create(selectedTask.id, commentText.trim());
-                                                        setCommentText('');
-                                                        const res = await commentsApi.list(selectedTask.id);
-                                                        setComments(res.data || []);
-                                                    } catch (err) {
-                                                        console.error('Failed to post comment', err);
-                                                    } finally {
-                                                        setIsSendingComment(false);
-                                                    }
-                                                }
-                                            }}
-                                        />
-                                        <button
-                                            className="comment-send-btn"
-                                            disabled={!commentText.trim() || isSendingComment}
-                                            onClick={async () => {
-                                                if (!commentText.trim() || isSendingComment) return;
-                                                setIsSendingComment(true);
-                                                try {
-                                                    await commentsApi.create(selectedTask.id, commentText.trim());
-                                                    setCommentText('');
-                                                    const res = await commentsApi.list(selectedTask.id);
-                                                    setComments(res.data || []);
-                                                } catch (err) {
-                                                    console.error('Failed to post comment', err);
-                                                } finally {
-                                                    setIsSendingComment(false);
-                                                }
-                                            }}
-                                        >
-                                            <Send size={14} />
-                                        </button>
-                                    </div>
-
-                                    {/* Comment List */}
-                                    {comments.length > 0 && (
-                                        <div className="comment-list">
-                                            {comments.map((c) => (
-                                                <div key={c.id} className="comment-item">
-                                                    <div className="comment-header">
-                                                        <div className="comment-avatar">{c.user.name.charAt(0).toUpperCase()}</div>
-                                                        <div className="comment-meta">
-                                                            <span className="comment-author">{c.user.name}</span>
-                                                            <span className="comment-date">{new Date(c.createdAt).toLocaleDateString()}</span>
-                                                        </div>
-                                                        <button
-                                                            className="comment-delete-btn"
-                                                            onClick={async () => {
-                                                                try {
-                                                                    await commentsApi.remove(selectedTask.id, c.id);
-                                                                    setComments(prev => prev.filter(x => x.id !== c.id));
-                                                                } catch (err) {
-                                                                    console.error('Failed to delete comment', err);
-                                                                }
-                                                            }}
-                                                        >
-                                                            <X size={12} />
-                                                        </button>
-                                                    </div>
-                                                    <p className="comment-content">{c.content}</p>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
+                                <div className="ts-bottom-section">
+                                    <TaskAttachments taskId={selectedTask.id} />
                                 </div>
 
-                                {/* Action Buttons Row */}
+                                {/* Action Buttons */}
                                 <div className="ts-action-row">
                                     <button
                                         className="ts-save-btn"
