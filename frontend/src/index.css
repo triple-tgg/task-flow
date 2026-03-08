@@ -264,6 +264,7 @@ a:hover {
   justify-content: center;
   background: var(--accent-gradient);
   color: white;
+  border: none;
   border-radius: var(--radius-lg);
   padding: 6px 10px;
   /* larger border radius for modern look */
