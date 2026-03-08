@@ -55,6 +55,7 @@ export declare class TasksController {
         description: string | null;
         title: string;
         projectId: string;
+        parentId: string | null;
         status: string;
         priority: string;
         dueDate: Date | null;
@@ -62,7 +63,6 @@ export declare class TasksController {
         recurringRule: import(".prisma/client/runtime/client").JsonValue | null;
         creatorId: string;
         assigneeId: string | null;
-        parentId: string | null;
         deletedBy: string | null;
     }>;
     findAll(projectId: string, userId: string, status?: string, priority?: string, assigneeId?: string, search?: string, page?: string, limit?: string): Promise<{
@@ -118,6 +118,7 @@ export declare class TasksController {
             description: string | null;
             title: string;
             projectId: string;
+            parentId: string | null;
             status: string;
             priority: string;
             dueDate: Date | null;
@@ -125,7 +126,6 @@ export declare class TasksController {
             recurringRule: import(".prisma/client/runtime/client").JsonValue | null;
             creatorId: string;
             assigneeId: string | null;
-            parentId: string | null;
             deletedBy: string | null;
         })[];
         meta: {
@@ -187,6 +187,7 @@ export declare class TasksController {
         description: string | null;
         title: string;
         projectId: string;
+        parentId: string | null;
         status: string;
         priority: string;
         dueDate: Date | null;
@@ -194,7 +195,6 @@ export declare class TasksController {
         recurringRule: import(".prisma/client/runtime/client").JsonValue | null;
         creatorId: string;
         assigneeId: string | null;
-        parentId: string | null;
         deletedBy: string | null;
     })[]>>;
     findOne(taskId: string, userId: string): Promise<{
@@ -249,6 +249,7 @@ export declare class TasksController {
         description: string | null;
         title: string;
         projectId: string;
+        parentId: string | null;
         status: string;
         priority: string;
         dueDate: Date | null;
@@ -256,7 +257,6 @@ export declare class TasksController {
         recurringRule: import(".prisma/client/runtime/client").JsonValue | null;
         creatorId: string;
         assigneeId: string | null;
-        parentId: string | null;
         deletedBy: string | null;
     }>;
     update(taskId: string, userId: string, dto: UpdateTaskDto): Promise<{
@@ -311,6 +311,7 @@ export declare class TasksController {
         description: string | null;
         title: string;
         projectId: string;
+        parentId: string | null;
         status: string;
         priority: string;
         dueDate: Date | null;
@@ -318,7 +319,6 @@ export declare class TasksController {
         recurringRule: import(".prisma/client/runtime/client").JsonValue | null;
         creatorId: string;
         assigneeId: string | null;
-        parentId: string | null;
         deletedBy: string | null;
     }>;
     reorder(projectId: string, userId: string, dto: ReorderTaskDto): Promise<{
@@ -373,6 +373,7 @@ export declare class TasksController {
         description: string | null;
         title: string;
         projectId: string;
+        parentId: string | null;
         status: string;
         priority: string;
         dueDate: Date | null;
@@ -380,7 +381,6 @@ export declare class TasksController {
         recurringRule: import(".prisma/client/runtime/client").JsonValue | null;
         creatorId: string;
         assigneeId: string | null;
-        parentId: string | null;
         deletedBy: string | null;
     }>;
     updateTags(taskId: string, userId: string, tags: string[]): Promise<{
@@ -435,6 +435,7 @@ export declare class TasksController {
         description: string | null;
         title: string;
         projectId: string;
+        parentId: string | null;
         status: string;
         priority: string;
         dueDate: Date | null;
@@ -442,7 +443,6 @@ export declare class TasksController {
         recurringRule: import(".prisma/client/runtime/client").JsonValue | null;
         creatorId: string;
         assigneeId: string | null;
-        parentId: string | null;
         deletedBy: string | null;
     }>;
     remove(taskId: string, userId: string): Promise<{
@@ -500,6 +500,7 @@ export declare class TasksController {
         description: string | null;
         title: string;
         projectId: string;
+        parentId: string | null;
         status: string;
         priority: string;
         dueDate: Date | null;
@@ -507,7 +508,6 @@ export declare class TasksController {
         recurringRule: import(".prisma/client/runtime/client").JsonValue | null;
         creatorId: string;
         assigneeId: string | null;
-        parentId: string | null;
         deletedBy: string | null;
     }) | null>;
     removeAssignee(taskId: string, targetUserId: string, userId: string): Promise<({
@@ -562,6 +562,7 @@ export declare class TasksController {
         description: string | null;
         title: string;
         projectId: string;
+        parentId: string | null;
         status: string;
         priority: string;
         dueDate: Date | null;
@@ -569,7 +570,6 @@ export declare class TasksController {
         recurringRule: import(".prisma/client/runtime/client").JsonValue | null;
         creatorId: string;
         assigneeId: string | null;
-        parentId: string | null;
         deletedBy: string | null;
     }) | null>;
 }

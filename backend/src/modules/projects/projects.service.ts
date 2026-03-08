@@ -56,7 +56,7 @@ export class ProjectsService {
                             description: true,
                             createdAt: true,
                             updatedAt: true,
-                            _count: { select: { tasks: { where: { deletedAt: null } }, members: true } },
+                            _count: { select: { tasks: { where: { deletedAt: null, parentId: null } }, members: true } },
                         },
                     },
                 },
@@ -74,7 +74,7 @@ export class ProjectsService {
         const [doneCounts, overdueCounts] = await Promise.all([
             this.prisma.task.groupBy({
                 by: ['projectId'],
-                where: { projectId: { in: projectIds }, status: 'done', deletedAt: null },
+                where: { projectId: { in: projectIds }, status: 'done', deletedAt: null, parentId: null },
                 _count: true,
             }),
             this.prisma.task.groupBy({
@@ -84,6 +84,7 @@ export class ProjectsService {
                     dueDate: { lt: now },
                     status: { not: 'done' },
                     deletedAt: null,
+                    parentId: null,
                 },
                 _count: true,
             }),

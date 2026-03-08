@@ -12,12 +12,12 @@ export declare class ProjectsService {
         }[];
         id: string;
         name: string;
-        description: string | null;
-        isPublic: boolean;
-        shareToken: string | null;
         createdAt: Date;
         updatedAt: Date;
         deletedAt: Date | null;
+        description: string | null;
+        isPublic: boolean;
+        shareToken: string | null;
     }>;
     findByUser(userId: string, page?: number, limit?: number): Promise<{
         data: {
@@ -29,13 +29,13 @@ export declare class ProjectsService {
             };
             id: string;
             name: string;
-            description: string | null;
             createdAt: Date;
             updatedAt: Date;
             _count: {
                 members: number;
                 tasks: number;
             };
+            description: string | null;
         }[];
         meta: {
             total: number;
@@ -46,30 +46,30 @@ export declare class ProjectsService {
     }>;
     findById(projectId: string, userId: string): Promise<{
         myRole: string;
-        members: ({
-            user: {
-                id: string;
-                name: string;
-                email: string;
-            };
-        } & {
-            id: string;
-            projectId: string;
-            userId: string;
-            role: string;
-            joinedAt: Date;
-        })[];
         _count: {
             tasks: number;
         };
+        members: ({
+            user: {
+                id: string;
+                email: string;
+                name: string;
+            };
+        } & {
+            id: string;
+            role: string;
+            userId: string;
+            projectId: string;
+            joinedAt: Date;
+        })[];
         id: string;
         name: string;
-        description: string | null;
-        isPublic: boolean;
-        shareToken: string | null;
         createdAt: Date;
         updatedAt: Date;
         deletedAt: Date | null;
+        description: string | null;
+        isPublic: boolean;
+        shareToken: string | null;
     }>;
     update(projectId: string, userId: string, data: {
         name?: string;
@@ -77,8 +77,8 @@ export declare class ProjectsService {
     }): Promise<{
         id: string;
         name: string;
-        description: string | null;
         updatedAt: Date;
+        description: string | null;
     }>;
     remove(projectId: string, userId: string): Promise<{
         message: string;
@@ -86,27 +86,27 @@ export declare class ProjectsService {
     addMember(projectId: string, requesterId: string, targetUserId: string, role?: string): Promise<{
         user: {
             id: string;
-            name: string;
             email: string;
+            name: string;
         };
     } & {
         id: string;
-        projectId: string;
-        userId: string;
         role: string;
+        userId: string;
+        projectId: string;
         joinedAt: Date;
     }>;
     updateMemberRole(projectId: string, requesterId: string, targetUserId: string, role: string): Promise<{
         user: {
             id: string;
-            name: string;
             email: string;
+            name: string;
         };
     } & {
         id: string;
-        projectId: string;
-        userId: string;
         role: string;
+        userId: string;
+        projectId: string;
         joinedAt: Date;
     }>;
     removeMember(projectId: string, requesterId: string, targetUserId: string): Promise<{
@@ -124,8 +124,8 @@ export declare class ProjectsService {
         project: {
             id: string;
             name: string;
-            description: string | null;
             createdAt: Date;
+            description: string | null;
             members: {
                 user: {
                     id: string;
@@ -154,12 +154,13 @@ export declare class ProjectsService {
                 } | null;
             } & {
                 id: string;
-                description: string | null;
                 createdAt: Date;
                 updatedAt: Date;
                 deletedAt: Date | null;
-                projectId: string;
+                description: string | null;
                 title: string;
+                projectId: string;
+                parentId: string | null;
                 status: string;
                 priority: string;
                 dueDate: Date | null;
@@ -167,7 +168,6 @@ export declare class ProjectsService {
                 recurringRule: import(".prisma/client/runtime/client").JsonValue | null;
                 creatorId: string;
                 assigneeId: string | null;
-                parentId: string | null;
                 deletedBy: string | null;
             })[];
             in_progress: ({
@@ -189,12 +189,13 @@ export declare class ProjectsService {
                 } | null;
             } & {
                 id: string;
-                description: string | null;
                 createdAt: Date;
                 updatedAt: Date;
                 deletedAt: Date | null;
-                projectId: string;
+                description: string | null;
                 title: string;
+                projectId: string;
+                parentId: string | null;
                 status: string;
                 priority: string;
                 dueDate: Date | null;
@@ -202,7 +203,6 @@ export declare class ProjectsService {
                 recurringRule: import(".prisma/client/runtime/client").JsonValue | null;
                 creatorId: string;
                 assigneeId: string | null;
-                parentId: string | null;
                 deletedBy: string | null;
             })[];
             review: ({
@@ -224,12 +224,13 @@ export declare class ProjectsService {
                 } | null;
             } & {
                 id: string;
-                description: string | null;
                 createdAt: Date;
                 updatedAt: Date;
                 deletedAt: Date | null;
-                projectId: string;
+                description: string | null;
                 title: string;
+                projectId: string;
+                parentId: string | null;
                 status: string;
                 priority: string;
                 dueDate: Date | null;
@@ -237,7 +238,6 @@ export declare class ProjectsService {
                 recurringRule: import(".prisma/client/runtime/client").JsonValue | null;
                 creatorId: string;
                 assigneeId: string | null;
-                parentId: string | null;
                 deletedBy: string | null;
             })[];
             done: ({
@@ -259,12 +259,13 @@ export declare class ProjectsService {
                 } | null;
             } & {
                 id: string;
-                description: string | null;
                 createdAt: Date;
                 updatedAt: Date;
                 deletedAt: Date | null;
-                projectId: string;
+                description: string | null;
                 title: string;
+                projectId: string;
+                parentId: string | null;
                 status: string;
                 priority: string;
                 dueDate: Date | null;
@@ -272,7 +273,6 @@ export declare class ProjectsService {
                 recurringRule: import(".prisma/client/runtime/client").JsonValue | null;
                 creatorId: string;
                 assigneeId: string | null;
-                parentId: string | null;
                 deletedBy: string | null;
             })[];
         };
