@@ -357,6 +357,7 @@ export default function ProjectOverviewPage() {
                                                                     href={link.url}
                                                                     target="_blank"
                                                                     rel="noreferrer"
+                                                                    title={link.description || link.name}
                                                                     style={{
                                                                         display: 'flex',
                                                                         alignItems: 'center',
