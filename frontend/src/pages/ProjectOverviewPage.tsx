@@ -239,105 +239,104 @@ export default function ProjectOverviewPage() {
                 ) : (
                     <div style={{ padding: '2rem 2.5rem', display: 'flex', flexDirection: 'column', gap: '2rem', maxWidth: '1400px', margin: '0 auto', width: '100%' }}>
 
-                        {/* ═══ TOP: Hero + KPIs ═══ */}
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '2rem', alignItems: 'stretch' }}>
-                            {/* Hero Header */}
-                            <div style={{
-                                background: 'linear-gradient(145deg, var(--bg-card), rgba(108, 99, 255, 0.05))',
-                                borderRadius: '14px',
-                                padding: '1.75rem 2rem',
-                                border: '1px solid var(--border-color)',
-                                boxShadow: 'var(--shadow-sm)',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                gap: '0.75rem',
-                                position: 'relative',
-                                overflow: 'hidden'
-                            }}>
-                                <div style={{ position: 'absolute', top: '-50px', right: '-50px', background: 'var(--accent-gradient)', width: '180px', height: '180px', borderRadius: '50%', filter: 'blur(80px)', opacity: '0.12' }} />
+                        {/* ═══ Hero Card (Project Info + KPIs) ═══ */}
+                        <div style={{
+                            background: 'linear-gradient(145deg, var(--bg-card), rgba(108, 99, 255, 0.05))',
+                            borderRadius: '14px',
+                            padding: '1.75rem 2rem',
+                            border: '1px solid var(--border-color)',
+                            boxShadow: 'var(--shadow-sm)',
+                            position: 'relative',
+                            overflow: 'hidden'
+                        }}>
+                            <div style={{ position: 'absolute', top: '-50px', right: '-50px', background: 'var(--accent-gradient)', width: '180px', height: '180px', borderRadius: '50%', filter: 'blur(80px)', opacity: '0.12' }} />
 
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', zIndex: 1 }}>
-                                    <div style={{
-                                        width: '44px', height: '44px',
-                                        borderRadius: '10px',
-                                        background: 'var(--accent-gradient)',
-                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                        color: '#fff',
-                                        boxShadow: '0 4px 12px rgba(108, 99, 255, 0.3)',
-                                        flexShrink: 0
-                                    }}>
-                                        <FolderKanban size={22} />
-                                    </div>
-                                    <div style={{ minWidth: 0 }}>
-                                        <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.5px', margin: 0, lineHeight: 1.2 }}>
-                                            {currentProject?.name}
-                                        </h1>
-                                        <div style={{ display: 'flex', gap: '1.25rem', color: 'var(--text-secondary)', fontSize: '0.8rem', alignItems: 'center', marginTop: '4px' }}>
-                                            {currentProject?.createdAt && (
-                                                <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                                                    <Calendar size={12} /> {new Date(currentProject.createdAt).toLocaleDateString()}
-                                                </span>
-                                            )}
-                                            {currentProject?.members && (
-                                                <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                                                    <Users size={12} /> {currentProject.members.length} Members
-                                                </span>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {currentProject?.description && (
-                                    <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: 1.5, margin: 0, zIndex: 1 }}>
-                                        {currentProject.description}
-                                    </p>
-                                )}
-
-                                {/* Progress Bar */}
-                                <div style={{ marginTop: '0.5rem', zIndex: 1 }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', fontSize: '0.8rem' }}>
-                                        <span style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>Completion</span>
-                                        <span style={{ color: completionRate === 100 ? 'var(--success)' : 'var(--text-primary)', fontWeight: 700 }}>{completionRate}%</span>
-                                    </div>
-                                    <div style={{ height: '6px', background: 'var(--border-subtle)', borderRadius: '3px', overflow: 'hidden' }}>
+                            {/* Top row: Info left + KPIs right */}
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '2rem', zIndex: 1, position: 'relative' }}>
+                                {/* Left: Project info */}
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                                         <div style={{
-                                            height: '100%',
-                                            width: `${completionRate}%`,
-                                            background: completionRate === 100 ? 'var(--success)' : 'var(--accent-gradient)',
-                                            transition: 'width 1s ease-in-out',
-                                            borderRadius: '3px'
-                                        }} />
+                                            width: '44px', height: '44px',
+                                            borderRadius: '10px',
+                                            background: 'var(--accent-gradient)',
+                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                            color: '#fff',
+                                            boxShadow: '0 4px 12px rgba(108, 99, 255, 0.3)',
+                                            flexShrink: 0
+                                        }}>
+                                            <FolderKanban size={22} />
+                                        </div>
+                                        <div style={{ minWidth: 0 }}>
+                                            <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.5px', margin: 0, lineHeight: 1.2 }}>
+                                                {currentProject?.name}
+                                            </h1>
+                                            <div style={{ display: 'flex', gap: '1.25rem', color: 'var(--text-secondary)', fontSize: '0.8rem', alignItems: 'center', marginTop: '4px' }}>
+                                                {currentProject?.createdAt && (
+                                                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                                                        <Calendar size={12} /> {new Date(currentProject.createdAt).toLocaleDateString()}
+                                                    </span>
+                                                )}
+                                                {currentProject?.members && (
+                                                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                                                        <Users size={12} /> {currentProject.members.length} Members
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {currentProject?.description && (
+                                        <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: 1.5, margin: '0.75rem 0 0 0' }}>
+                                            {currentProject.description}
+                                        </p>
+                                    )}
+
+                                    {/* Progress Bar */}
+                                    <div style={{ marginTop: '0.75rem' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', fontSize: '0.8rem' }}>
+                                            <span style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>Completion</span>
+                                            <span style={{ color: completionRate === 100 ? 'var(--success)' : 'var(--text-primary)', fontWeight: 700 }}>{completionRate}%</span>
+                                        </div>
+                                        <div style={{ height: '6px', background: 'var(--border-subtle)', borderRadius: '3px', overflow: 'hidden' }}>
+                                            <div style={{
+                                                height: '100%',
+                                                width: `${completionRate}%`,
+                                                background: completionRate === 100 ? 'var(--success)' : 'var(--accent-gradient)',
+                                                transition: 'width 1s ease-in-out',
+                                                borderRadius: '3px'
+                                            }} />
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            {/* KPI Cards */}
-                            <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'stretch' }}>
-                                {[
-                                    { label: 'Total Tasks', value: total, color: '#3b82f6', bg: 'rgba(59, 130, 246, 0.12)', icon: <ListTodo size={18} style={{ color: '#3b82f6' }} /> },
-                                    { label: 'Completed', value: done, color: '#22c55e', bg: 'rgba(34, 197, 94, 0.12)', icon: <CheckCircle2 size={18} style={{ color: '#22c55e' }} /> },
-                                    { label: 'Overdue', value: overdue, color: '#ef4444', bg: 'rgba(239, 68, 68, 0.12)', icon: <AlertCircle size={18} style={{ color: '#ef4444' }} /> },
-                                ].map((kpi) => (
-                                    <div key={kpi.label} style={{
-                                        background: 'var(--bg-card)',
-                                        border: '1px solid var(--border-color)',
-                                        borderRadius: '12px',
-                                        padding: '1.25rem 1.5rem',
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        gap: '0.5rem',
-                                        minWidth: '120px',
-                                        textAlign: 'center'
-                                    }}>
-                                        <div style={{ background: kpi.bg, borderRadius: '10px', padding: '0.6rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                            {kpi.icon}
+                                {/* Right: KPI cards */}
+                                <div style={{ display: 'flex', gap: '0.75rem', flexShrink: 0 }}>
+                                    {[
+                                        { label: 'Total Tasks', value: total, color: '#3b82f6', bg: 'rgba(59, 130, 246, 0.12)', icon: <ListTodo size={18} style={{ color: '#3b82f6' }} /> },
+                                        { label: 'Completed', value: done, color: '#22c55e', bg: 'rgba(34, 197, 94, 0.12)', icon: <CheckCircle2 size={18} style={{ color: '#22c55e' }} /> },
+                                        { label: 'Overdue', value: overdue, color: '#ef4444', bg: 'rgba(239, 68, 68, 0.12)', icon: <AlertCircle size={18} style={{ color: '#ef4444' }} /> },
+                                    ].map((kpi) => (
+                                        <div key={kpi.label} style={{
+                                            background: 'rgba(255,255,255,0.03)',
+                                            border: '1px solid var(--border-subtle)',
+                                            borderRadius: '10px',
+                                            padding: '1rem 1.25rem',
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            gap: '0.4rem',
+                                            minWidth: '100px',
+                                            textAlign: 'center'
+                                        }}>
+                                            <div style={{ background: kpi.bg, borderRadius: '8px', padding: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                {kpi.icon}
+                                            </div>
+                                            <span style={{ fontSize: '1.5rem', fontWeight: 800, color: kpi.color, lineHeight: 1 }}>{kpi.value}</span>
+                                            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 500 }}>{kpi.label}</span>
                                         </div>
-                                        <span style={{ fontSize: '1.75rem', fontWeight: 800, color: kpi.color, lineHeight: 1 }}>{kpi.value}</span>
-                                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 500 }}>{kpi.label}</span>
-                                    </div>
-                                ))}
+                                    ))}
+                                </div>
                             </div>
                         </div>
 
