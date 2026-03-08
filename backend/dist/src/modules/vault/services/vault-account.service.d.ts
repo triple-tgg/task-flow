@@ -20,6 +20,8 @@ export declare class VaultAccountService {
             createdAt: Date;
             updatedAt: Date;
             projectId: string | null;
+            website: string | null;
+            accountType: import("@prisma/client").$Enums.VaultAccountType;
             username: string | null;
             note: string | null;
             isDeleted: boolean;
@@ -48,6 +50,7 @@ export declare class VaultAccountService {
             id: string;
             createdAt: Date;
             updatedAt: Date;
+            note: string | null;
             key: string;
             keyVersion: number;
         }[];
@@ -58,6 +61,8 @@ export declare class VaultAccountService {
         createdAt: Date;
         updatedAt: Date;
         projectId: string | null;
+        website: string | null;
+        accountType: import("@prisma/client").$Enums.VaultAccountType;
         username: string | null;
         note: string | null;
         isDeleted: boolean;
@@ -71,6 +76,8 @@ export declare class VaultAccountService {
         createdAt: Date;
         updatedAt: Date;
         projectId: string | null;
+        website: string | null;
+        accountType: import("@prisma/client").$Enums.VaultAccountType;
         username: string | null;
         note: string | null;
         isDeleted: boolean;
@@ -84,6 +91,8 @@ export declare class VaultAccountService {
         createdAt: Date;
         updatedAt: Date;
         projectId: string | null;
+        website: string | null;
+        accountType: import("@prisma/client").$Enums.VaultAccountType;
         username: string | null;
         note: string | null;
         isDeleted: boolean;

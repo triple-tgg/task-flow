@@ -11,6 +11,7 @@ export declare class VaultSecretService {
         id: string;
         createdAt: Date;
         updatedAt: Date;
+        note: string | null;
         key: string;
         createdBy: string;
         keyVersion: number;
@@ -19,6 +20,7 @@ export declare class VaultSecretService {
         id: string;
         key: string;
         value: string;
+        note: string | null;
     }>;
     create(accountId: string, data: CreateSecretDto, userId: string): Promise<{
         id: string;

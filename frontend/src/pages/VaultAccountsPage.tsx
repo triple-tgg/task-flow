@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import { vaultToolsApi, vaultAccountsApi } from '../api/vault';
 import type { VaultTool, VaultAccount } from '../api/vault';
-import { Plus, ArrowLeft, User, Trash2, Edit2, X, Key } from 'lucide-react';
+import { Plus, ArrowLeft, User, Trash2, Edit2, X, Key, Lock, Server } from 'lucide-react';
 
 export default function VaultAccountsPage() {
     const { toolId } = useParams<{ toolId: string }>();
@@ -13,9 +13,12 @@ export default function VaultAccountsPage() {
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [editId, setEditId] = useState<string | null>(null);
-    const [form, setForm] = useState({ name: '', username: '', email: '', note: '' });
+    const [form, setForm] = useState({
+        name: '', username: '', email: '', note: '', website: '',
+        accountType: 'ENVIRONMENT' as 'PASSWORD' | 'ENVIRONMENT',
+    });
 
-    const fetch = async () => {
+    const fetchData = async () => {
         if (!toolId) return;
         setLoading(true);
         try {
@@ -29,33 +32,50 @@ export default function VaultAccountsPage() {
         finally { setLoading(false); }
     };
 
-    useEffect(() => { fetch(); }, [toolId]);
+    useEffect(() => { fetchData(); }, [toolId]);
 
     const handleSave = async () => {
         if (!form.name.trim() || !toolId) return;
         try {
             if (editId) {
-                await vaultAccountsApi.update(editId, form);
+                await vaultAccountsApi.update(editId, {
+                    name: form.name, username: form.username || undefined,
+                    email: form.email || undefined, note: form.note || undefined,
+                });
             } else {
-                await vaultAccountsApi.create(toolId, form);
+                await vaultAccountsApi.create(toolId, {
+                    name: form.name,
+                    accountType: form.accountType,
+                    website: form.website || undefined,
+                    username: form.username || undefined,
+                    email: form.email || undefined,
+                    note: form.note || undefined,
+                });
             }
-            setShowModal(false);
-            setEditId(null);
-            setForm({ name: '', username: '', email: '', note: '' });
-            fetch();
+            closeModal();
+            fetchData();
         } catch (err) { console.error(err); }
     };
 
     const handleDelete = async (id: string) => {
         if (!confirm('Delete this account and all its secrets?')) return;
-        try { await vaultAccountsApi.remove(id); fetch(); }
+        try { await vaultAccountsApi.remove(id); fetchData(); }
         catch (err) { console.error(err); }
     };
 
     const openEdit = (acc: VaultAccount) => {
         setEditId(acc.id);
-        setForm({ name: acc.name, username: acc.username || '', email: acc.email || '', note: acc.note || '' });
+        setForm({
+            name: acc.name, username: acc.username || '', email: acc.email || '',
+            note: acc.note || '', website: acc.website || '', accountType: acc.accountType,
+        });
         setShowModal(true);
+    };
+
+    const closeModal = () => {
+        setShowModal(false);
+        setEditId(null);
+        setForm({ name: '', username: '', email: '', note: '', website: '', accountType: 'ENVIRONMENT' });
     };
 
     return (
@@ -73,7 +93,7 @@ export default function VaultAccountsPage() {
                                 <p className="vault-subtitle">{tool?.category && `${tool.category} · `}{accounts.length} account{accounts.length !== 1 ? 's' : ''}</p>
                             </div>
                         </div>
-                        <button className="btn-primary" onClick={() => { setShowModal(true); setEditId(null); setForm({ name: '', username: '', email: '', note: '' }); }}>
+                        <button className="btn-primary" onClick={() => { setShowModal(true); setEditId(null); setForm({ name: '', username: '', email: '', note: '', website: '', accountType: 'ENVIRONMENT' }); }}>
                             <Plus size={16} /> Add Account
                         </button>
                     </div>
@@ -90,12 +110,18 @@ export default function VaultAccountsPage() {
                             {accounts.map(acc => (
                                 <div key={acc.id} className="vault-account-row" onClick={() => navigate(`/vault/accounts/${acc.id}`)}>
                                     <div className="vault-account-avatar">
-                                        <User size={18} />
+                                        {acc.accountType === 'PASSWORD' ? <Lock size={18} /> : <Server size={18} />}
                                     </div>
                                     <div className="vault-account-info">
-                                        <span className="vault-account-name">{acc.name}</span>
+                                        <span className="vault-account-name">
+                                            {acc.name}
+                                            <span className={`vault-type-badge ${acc.accountType === 'PASSWORD' ? 'password' : 'environment'}`}>
+                                                {acc.accountType === 'PASSWORD' ? 'Password' : 'Env'}
+                                            </span>
+                                        </span>
                                         {acc.username && <span className="vault-account-meta">@{acc.username}</span>}
                                         {acc.email && <span className="vault-account-meta">{acc.email}</span>}
+                                        {acc.website && <span className="vault-account-meta">{acc.website}</span>}
                                     </div>
                                     <div className="vault-account-secrets">
                                         <Key size={14} />
@@ -112,15 +138,49 @@ export default function VaultAccountsPage() {
                 </div>
 
                 {showModal && (
-                    <div className="vault-modal-overlay" onClick={() => setShowModal(false)}>
+                    <div className="vault-modal-overlay" onClick={closeModal}>
                         <div className="vault-modal" onClick={e => e.stopPropagation()}>
                             <div className="vault-modal-header">
                                 <h2>{editId ? 'Edit Account' : 'Add Account'}</h2>
-                                <button onClick={() => setShowModal(false)}><X size={18} /></button>
+                                <button onClick={closeModal}><X size={18} /></button>
                             </div>
                             <div className="vault-modal-body">
+                                {/* Account Type Selector — only on create */}
+                                {!editId && (
+                                    <>
+                                        <label>Account Type</label>
+                                        <div className="vault-type-selector">
+                                            <button
+                                                className={`vault-type-option ${form.accountType === 'PASSWORD' ? 'active' : ''}`}
+                                                onClick={() => setForm({ ...form, accountType: 'PASSWORD' })}
+                                            >
+                                                <Lock size={16} />
+                                                <span>Password Account</span>
+                                                <small>Username, Email, Password</small>
+                                            </button>
+                                            <button
+                                                className={`vault-type-option ${form.accountType === 'ENVIRONMENT' ? 'active' : ''}`}
+                                                onClick={() => setForm({ ...form, accountType: 'ENVIRONMENT' })}
+                                            >
+                                                <Server size={16} />
+                                                <span>Environment Account</span>
+                                                <small>Key-Value secrets</small>
+                                            </button>
+                                        </div>
+                                    </>
+                                )}
+
                                 <label>Account Name *</label>
                                 <input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="e.g. Team Account, Production" />
+
+                                {/* Website — only for Password type */}
+                                {form.accountType === 'PASSWORD' && (
+                                    <>
+                                        <label>Website</label>
+                                        <input value={form.website} onChange={e => setForm({ ...form, website: e.target.value })} placeholder="https://..." />
+                                    </>
+                                )}
+
                                 <label>Username</label>
                                 <input value={form.username} onChange={e => setForm({ ...form, username: e.target.value })} placeholder="@username" />
                                 <label>Email</label>
@@ -129,7 +189,7 @@ export default function VaultAccountsPage() {
                                 <textarea value={form.note} onChange={e => setForm({ ...form, note: e.target.value })} placeholder="Optional notes" rows={3} />
                             </div>
                             <div className="vault-modal-footer">
-                                <button className="vault-cancel-btn" onClick={() => setShowModal(false)}>Cancel</button>
+                                <button className="vault-cancel-btn" onClick={closeModal}>Cancel</button>
                                 <button className="btn-primary" onClick={handleSave}>{editId ? 'Save' : 'Create'}</button>
                             </div>
                         </div>

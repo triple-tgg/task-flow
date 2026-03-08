@@ -18,7 +18,7 @@ export class VaultSecretService {
         return this.prisma.vaultSecret.findMany({
             where: { accountId, isDeleted: false },
             select: {
-                id: true, key: true, keyVersion: true,
+                id: true, key: true, keyVersion: true, note: true,
                 createdAt: true, updatedAt: true, createdBy: true,
             },
         });
@@ -42,7 +42,7 @@ export class VaultSecretService {
                 ipAddress,
             });
 
-            return { id: secret.id, key: secret.key, value: plaintext };
+            return { id: secret.id, key: secret.key, value: plaintext, note: secret.note };
         } catch (err) {
             throw new InternalServerErrorException('VAULT_DECRYPT_FAILED');
         }
@@ -61,6 +61,7 @@ export class VaultSecretService {
                 accountId,
                 key: data.key.toUpperCase(),
                 value: encryptedValue,
+                note: data.note || undefined,
                 keyVersion: this.encryption.getCurrentVersion(),
                 createdBy: userId,
             },
@@ -86,6 +87,7 @@ export class VaultSecretService {
             where: { id: secret.id },
             data: {
                 value: encryptedValue,
+                note: data.note !== undefined ? data.note : undefined,
                 keyVersion: this.encryption.getCurrentVersion(),
             },
         });

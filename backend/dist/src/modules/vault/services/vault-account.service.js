@@ -53,7 +53,7 @@ let VaultAccountService = class VaultAccountService {
                 tool: { select: { id: true, name: true, category: true } },
                 secrets: {
                     where: { isDeleted: false },
-                    select: { id: true, key: true, keyVersion: true, createdAt: true, updatedAt: true },
+                    select: { id: true, key: true, keyVersion: true, note: true, createdAt: true, updatedAt: true },
                 },
                 _count: { select: { secrets: { where: { isDeleted: false } } } },
             },

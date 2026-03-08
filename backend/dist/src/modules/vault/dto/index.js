@@ -9,9 +9,14 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.UpdateSecretDto = exports.CreateSecretDto = exports.UpdateAccountDto = exports.CreateAccountDto = exports.UpdateToolDto = exports.CreateToolDto = void 0;
+exports.UpdateSecretDto = exports.CreateSecretDto = exports.UpdateAccountDto = exports.CreateAccountDto = exports.UpdateToolDto = exports.CreateToolDto = exports.AccountType = void 0;
 const class_validator_1 = require("class-validator");
 const swagger_1 = require("@nestjs/swagger");
+var AccountType;
+(function (AccountType) {
+    AccountType["PASSWORD"] = "PASSWORD";
+    AccountType["ENVIRONMENT"] = "ENVIRONMENT";
+})(AccountType || (exports.AccountType = AccountType = {}));
 class CreateToolDto {
     name;
     category;
@@ -89,7 +94,9 @@ __decorate([
 ], UpdateToolDto.prototype, "description", void 0);
 class CreateAccountDto {
     name;
+    accountType;
     projectId;
+    website;
     username;
     email;
     note;
@@ -101,11 +108,23 @@ __decorate([
     __metadata("design:type", String)
 ], CreateAccountDto.prototype, "name", void 0);
 __decorate([
+    (0, swagger_1.ApiPropertyOptional)({ enum: AccountType, default: AccountType.ENVIRONMENT }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsEnum)(AccountType),
+    __metadata("design:type", String)
+], CreateAccountDto.prototype, "accountType", void 0);
+__decorate([
     (0, swagger_1.ApiPropertyOptional)(),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], CreateAccountDto.prototype, "projectId", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)(),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], CreateAccountDto.prototype, "website", void 0);
 __decorate([
     (0, swagger_1.ApiPropertyOptional)(),
     (0, class_validator_1.IsOptional)(),
@@ -127,6 +146,7 @@ __decorate([
 class UpdateAccountDto {
     name;
     projectId;
+    website;
     username;
     email;
     note;
@@ -149,6 +169,12 @@ __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
+], UpdateAccountDto.prototype, "website", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)(),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
 ], UpdateAccountDto.prototype, "username", void 0);
 __decorate([
     (0, swagger_1.ApiPropertyOptional)(),
@@ -165,6 +191,7 @@ __decorate([
 class CreateSecretDto {
     key;
     value;
+    note;
 }
 exports.CreateSecretDto = CreateSecretDto;
 __decorate([
@@ -177,8 +204,15 @@ __decorate([
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], CreateSecretDto.prototype, "value", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: 'Optional note for this secret' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], CreateSecretDto.prototype, "note", void 0);
 class UpdateSecretDto {
     value;
+    note;
 }
 exports.UpdateSecretDto = UpdateSecretDto;
 __decorate([
@@ -186,4 +220,10 @@ __decorate([
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], UpdateSecretDto.prototype, "value", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: 'Optional note for this secret' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], UpdateSecretDto.prototype, "note", void 0);
 //# sourceMappingURL=index.js.map

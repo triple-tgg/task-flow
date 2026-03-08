@@ -18,7 +18,9 @@ export interface VaultTool {
 export interface VaultAccount {
     id: string;
     toolId: string;
+    accountType: 'PASSWORD' | 'ENVIRONMENT';
     name: string;
+    website?: string;
     username?: string;
     email?: string;
     note?: string;
@@ -27,7 +29,7 @@ export interface VaultAccount {
     createdAt: string;
     updatedAt: string;
     tool?: { id: string; name: string; category?: string };
-    secrets?: Array<{ id: string; key: string; keyVersion: number; createdAt: string; updatedAt: string }>;
+    secrets?: Array<{ id: string; key: string; keyVersion: number; note?: string; createdAt: string; updatedAt: string }>;
     _count: { secrets: number };
 }
 
@@ -35,6 +37,7 @@ export interface VaultSecret {
     id: string;
     key: string;
     keyVersion: number;
+    note?: string;
     createdBy?: string;
     createdAt: string;
     updatedAt: string;
@@ -88,7 +91,7 @@ export const vaultAccountsApi = {
     getById: (id: string) =>
         api.get<VaultAccount>(`/vault/accounts/${id}`).then(r => r.data),
 
-    create: (toolId: string, data: { name: string; username?: string; email?: string; note?: string; projectId?: string }) =>
+    create: (toolId: string, data: { name: string; accountType?: string; website?: string; username?: string; email?: string; note?: string; projectId?: string }) =>
         api.post<VaultAccount>(`/vault/tools/${toolId}/accounts`, data).then(r => r.data),
 
     update: (id: string, data: { name?: string; username?: string; email?: string; note?: string }) =>
@@ -105,12 +108,12 @@ export const vaultSecretsApi = {
         api.get<VaultSecret[]>(`/vault/accounts/${accountId}/secrets`).then(r => r.data),
 
     decrypt: (id: string) =>
-        api.get<{ id: string; key: string; value: string }>(`/vault/secrets/${id}/decrypt`).then(r => r.data),
+        api.get<{ id: string; key: string; value: string; note?: string }>(`/vault/secrets/${id}/decrypt`).then(r => r.data),
 
-    create: (accountId: string, data: { key: string; value: string }) =>
+    create: (accountId: string, data: { key: string; value: string; note?: string }) =>
         api.post(`/vault/accounts/${accountId}/secrets`, data).then(r => r.data),
 
-    update: (id: string, data: { value: string }) =>
+    update: (id: string, data: { value: string; note?: string }) =>
         api.patch(`/vault/secrets/${id}`, data).then(r => r.data),
 
     remove: (id: string) =>

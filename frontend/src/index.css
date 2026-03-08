@@ -4386,3 +4386,101 @@ a:hover {
   gap: 1rem;
   text-align: center;
 }
+
+/* Account Type Selector */
+.vault-type-selector {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.vault-type-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.9rem;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.15s;
+  background: var(--bg-secondary);
+  border: 2px solid var(--border-color);
+  color: var(--text-muted);
+}
+
+.vault-type-option span {
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--text-primary);
+}
+
+.vault-type-option small {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.vault-type-option:hover {
+  border-color: var(--text-muted);
+}
+
+.vault-type-option.active {
+  border-color: var(--accent);
+  background: rgba(99, 102, 241, 0.08);
+  color: var(--accent);
+}
+
+.vault-type-option.active span {
+  color: var(--accent);
+}
+
+/* Type Badges */
+.vault-type-badge {
+  display: inline-block;
+  padding: 0.12rem 0.5rem;
+  border-radius: 10px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-left: 0.5rem;
+  vertical-align: middle;
+}
+
+.vault-type-badge.password {
+  background: rgba(168, 85, 247, 0.15);
+  color: #a855f7;
+}
+
+.vault-type-badge.environment {
+  background: rgba(20, 184, 166, 0.15);
+  color: #14b8a6;
+}
+
+/* Not-set placeholder for Password accounts */
+.vault-not-set {
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  font-style: italic;
+  opacity: 0.6;
+}
+
+/* Inline add button for password secret rows */
+.vault-add-inline {
+  color: var(--accent) !important;
+}
+
+.vault-add-inline:hover {
+  background: rgba(99, 102, 241, 0.1) !important;
+}
+
+/* Secret note */
+.vault-secret-note {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

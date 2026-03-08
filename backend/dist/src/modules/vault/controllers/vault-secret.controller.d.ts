@@ -8,6 +8,7 @@ export declare class VaultSecretController {
         id: string;
         createdAt: Date;
         updatedAt: Date;
+        note: string | null;
         key: string;
         createdBy: string;
         keyVersion: number;
@@ -16,6 +17,7 @@ export declare class VaultSecretController {
         id: string;
         key: string;
         value: string;
+        note: string | null;
     }>;
     create(accountId: string, dto: CreateSecretDto, userId: string): Promise<{
         id: string;

@@ -288,17 +288,24 @@ model VaultTool {
   @@map("vault_tools")
 }
 
+enum VaultAccountType {
+  PASSWORD
+  ENVIRONMENT
+}
+
 model VaultAccount {
-  id          String    @id @default(uuid())
+  id          String           @id @default(uuid())
   toolId      String
   projectId   String?
+  accountType VaultAccountType @default(ENVIRONMENT)
   name        String
+  website     String?
   username    String?
   email       String?
   note        String?
-  isDeleted   Boolean   @default(false)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  isDeleted   Boolean          @default(false)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
   createdBy   String
 
   tool    VaultTool     @relation(fields: [toolId], references: [id], onDelete: Cascade)
@@ -315,6 +322,7 @@ model VaultSecret {
   accountId  String
   key        String   // UPPER_SNAKE_CASE: PASSWORD, API_KEY, TOKEN
   value      String   // encrypted (AES-256-GCM JSON payload)
+  note       String?
   keyVersion Int      @default(1)
   isDeleted  Boolean  @default(false)
   createdAt  DateTime @default(now())
