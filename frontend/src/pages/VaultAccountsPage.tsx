@@ -65,7 +65,7 @@ export default function VaultAccountsPage() {
                 <div className="vault-page">
                     <div className="vault-header">
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                            <button className="vault-back-btn" onClick={() => navigate('/environments')}>
+                            <button className="vault-back-btn" onClick={() => navigate('/vault')}>
                                 <ArrowLeft size={18} />
                             </button>
                             <div>
@@ -88,7 +88,7 @@ export default function VaultAccountsPage() {
                     ) : (
                         <div className="vault-accounts-list">
                             {accounts.map(acc => (
-                                <div key={acc.id} className="vault-account-row" onClick={() => navigate(`/environments/accounts/${acc.id}`)}>
+                                <div key={acc.id} className="vault-account-row" onClick={() => navigate(`/vault/accounts/${acc.id}`)}>
                                     <div className="vault-account-avatar">
                                         <User size={18} />
                                     </div>

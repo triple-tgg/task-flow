@@ -21,7 +21,7 @@ const MENU_ITEMS = [
     { label: 'Calendar', icon: Calendar, path: '/calendar' },
     { label: 'Gantt Chart', icon: BarChart3, path: '/gantt' },
     { label: 'Workload', icon: Users, path: '/workload' },
-    { label: 'Environment', icon: Server, path: '/environments' },
+    { label: 'Vault', icon: Server, path: '/vault' },
 ];
 
 export default function Sidebar() {

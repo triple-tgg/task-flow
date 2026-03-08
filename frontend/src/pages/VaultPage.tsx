@@ -7,7 +7,7 @@ import { Plus, Search, Server, Globe, Trash2, Edit2, X } from 'lucide-react';
 
 const CATEGORIES = ['All', 'Design', 'Development', 'Cloud', 'Marketing', 'Communication', 'Analytics', 'Other'];
 
-export default function EnvironmentsPage() {
+export default function VaultPage() {
     const navigate = useNavigate();
     const [tools, setTools] = useState<VaultTool[]>([]);
     const [loading, setLoading] = useState(true);
@@ -91,7 +91,7 @@ export default function EnvironmentsPage() {
                             <p className="vault-subtitle">Securely manage your team's credentials and API keys</p>
                         </div>
                         <div className="vault-header-actions">
-                            <button className="vault-audit-btn" onClick={() => navigate('/environments/audit')}>
+                            <button className="vault-audit-btn" onClick={() => navigate('/vault/audit')}>
                                 Audit Log
                             </button>
                             <button className="btn-primary" onClick={() => { setShowCreateModal(true); setForm({ name: '', category: '', website: '', description: '' }); }}>
@@ -137,7 +137,7 @@ export default function EnvironmentsPage() {
                     ) : (
                         <div className="vault-grid">
                             {tools.map(tool => (
-                                <div key={tool.id} className="vault-card" onClick={() => navigate(`/environments/tools/${tool.id}`)}>
+                                <div key={tool.id} className="vault-card" onClick={() => navigate(`/vault/tools/${tool.id}`)}>
                                     <div className="vault-card-header">
                                         <div className="vault-card-icon">
                                             {tool.iconUrl ? <img src={tool.iconUrl} alt="" /> : <Server size={20} />}

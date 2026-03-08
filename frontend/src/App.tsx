@@ -13,7 +13,7 @@ import GanttPage from './pages/GanttPage';
 import WorkloadPage from './pages/WorkloadPage';
 import TasksPage from './pages/TasksPage';
 import PublicProjectPage from './pages/PublicProjectPage';
-import EnvironmentsPage from './pages/EnvironmentsPage';
+import VaultPage from './pages/VaultPage';
 import VaultAccountsPage from './pages/VaultAccountsPage';
 import VaultAccountDetailPage from './pages/VaultAccountDetailPage';
 import VaultAuditPage from './pages/VaultAuditPage';
@@ -158,15 +158,15 @@ export default function App() {
         />
 
         <Route
-          path="/environments"
+          path="/vault"
           element={
             <ProtectedRoute>
-              <EnvironmentsPage />
+              <VaultPage />
             </ProtectedRoute>
           }
         />
         <Route
-          path="/environments/tools/:toolId"
+          path="/vault/tools/:toolId"
           element={
             <ProtectedRoute>
               <VaultAccountsPage />
@@ -174,7 +174,7 @@ export default function App() {
           }
         />
         <Route
-          path="/environments/accounts/:accountId"
+          path="/vault/accounts/:accountId"
           element={
             <ProtectedRoute>
               <VaultAccountDetailPage />
@@ -182,7 +182,7 @@ export default function App() {
           }
         />
         <Route
-          path="/environments/audit"
+          path="/vault/audit"
           element={
             <ProtectedRoute>
               <VaultAuditPage />

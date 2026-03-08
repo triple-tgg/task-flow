@@ -35,7 +35,7 @@ export interface VaultSecret {
     id: string;
     key: string;
     keyVersion: number;
-    createdBy: string;
+    createdBy?: string;
     createdAt: string;
     updatedAt: string;
 }

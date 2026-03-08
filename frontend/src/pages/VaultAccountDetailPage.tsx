@@ -17,7 +17,7 @@ export default function VaultAccountDetailPage() {
     const [showAddSecret, setShowAddSecret] = useState(false);
     const [editSecretId, setEditSecretId] = useState<string | null>(null);
     const [secretForm, setSecretForm] = useState({ key: '', value: '' });
-    const hideTimers = useRef<Record<string, NodeJS.Timeout>>({});
+    const hideTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
 
     const fetch = async () => {
         if (!accountId) return;
@@ -106,7 +106,7 @@ export default function VaultAccountDetailPage() {
                 <div className="vault-page">
                     <div className="vault-header">
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                            <button className="vault-back-btn" onClick={() => account?.toolId ? navigate(`/environments/tools/${account.toolId}`) : navigate('/environments')}>
+                            <button className="vault-back-btn" onClick={() => account?.toolId ? navigate(`/vault/tools/${account.toolId}`) : navigate('/vault')}>
                                 <ArrowLeft size={18} />
                             </button>
                             <div>

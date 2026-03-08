@@ -52,7 +52,7 @@ export default function VaultAuditPage() {
                 <div className="vault-page">
                     <div className="vault-header">
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                            <button className="vault-back-btn" onClick={() => navigate('/environments')}>
+                            <button className="vault-back-btn" onClick={() => navigate('/vault')}>
                                 <ArrowLeft size={18} />
                             </button>
                             <div>
