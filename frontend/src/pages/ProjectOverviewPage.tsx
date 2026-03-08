@@ -21,7 +21,8 @@ import {
     Link,
     Plus,
     Trash2,
-    ExternalLink
+    ExternalLink,
+    Pencil
 } from 'lucide-react';
 import { accessGroupsApi, type AccessGroup } from '../api/projects';
 
@@ -47,6 +48,19 @@ export default function ProjectOverviewPage() {
     const [newLinkName, setNewLinkName] = useState('');
     const [newLinkUrl, setNewLinkUrl] = useState('');
     const [newLinkDesc, setNewLinkDesc] = useState('');
+
+    // Edit Modal States
+    const [isEditGroupModalOpen, setIsEditGroupModalOpen] = useState(false);
+    const [editGroupId, setEditGroupId] = useState<string | null>(null);
+    const [editGroupName, setEditGroupName] = useState('');
+    const [editGroupDesc, setEditGroupDesc] = useState('');
+
+    const [isEditLinkModalOpen, setIsEditLinkModalOpen] = useState(false);
+    const [editLinkGroupId, setEditLinkGroupId] = useState<string | null>(null);
+    const [editLinkId, setEditLinkId] = useState<string | null>(null);
+    const [editLinkName, setEditLinkName] = useState('');
+    const [editLinkUrl, setEditLinkUrl] = useState('');
+    const [editLinkDesc, setEditLinkDesc] = useState('');
 
     const reloadGroups = () => {
         if (!projectId) return;
@@ -105,7 +119,7 @@ export default function ProjectOverviewPage() {
     };
 
     const handleDeleteLink = async (groupId: string, linkId: string, e: React.MouseEvent) => {
-        e.preventDefault(); // Prevent navigating
+        e.preventDefault();
         e.stopPropagation();
         if (!projectId || !confirm('Are you sure you want to delete this link?')) return;
         try {
@@ -114,6 +128,50 @@ export default function ProjectOverviewPage() {
         } catch (error) {
             console.error('Failed to delete link:', error);
             alert('Failed to delete link');
+        }
+    };
+
+    const openEditGroup = (group: AccessGroup) => {
+        setEditGroupId(group.id);
+        setEditGroupName(group.name);
+        setEditGroupDesc(group.description || '');
+        setIsEditGroupModalOpen(true);
+    };
+
+    const handleEditGroup = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!projectId || !editGroupId || !editGroupName.trim()) return;
+        try {
+            await accessGroupsApi.update(projectId, editGroupId, { name: editGroupName, description: editGroupDesc });
+            setIsEditGroupModalOpen(false);
+            reloadGroups();
+        } catch (error) {
+            console.error('Failed to update group:', error);
+            alert('Failed to update group');
+        }
+    };
+
+    const openEditLink = (groupId: string, link: { id: string; name: string; url: string; description?: string }) => {
+        setEditLinkGroupId(groupId);
+        setEditLinkId(link.id);
+        setEditLinkName(link.name);
+        setEditLinkUrl(link.url);
+        setEditLinkDesc(link.description || '');
+        setIsEditLinkModalOpen(true);
+    };
+
+    const handleEditLink = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!projectId || !editLinkGroupId || !editLinkId || !editLinkName.trim() || !editLinkUrl.trim()) return;
+        try {
+            let urlToSave = editLinkUrl;
+            if (!/^https?:\/\//i.test(urlToSave)) urlToSave = 'https://' + urlToSave;
+            await accessGroupsApi.updateLink(projectId, editLinkGroupId, editLinkId, { name: editLinkName, url: urlToSave, description: editLinkDesc });
+            setIsEditLinkModalOpen(false);
+            reloadGroups();
+        } catch (error) {
+            console.error('Failed to update link:', error);
+            alert('Failed to update link');
         }
     };
 
@@ -335,14 +393,16 @@ export default function ProjectOverviewPage() {
                                                         alignItems: 'center'
                                                     }}>
                                                         <div>
-                                                            <h3 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-primary)' }}>{group.name}</h3>
-                                                            {group.description && <p style={{ margin: '1px 0 0 0', fontSize: '0.78rem', color: 'var(--text-muted)' }}>{group.description}</p>}
+                                                            <h3 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-primary)' }} title={group.description || undefined}>{group.name}</h3>
                                                         </div>
                                                         <div style={{ display: 'flex', gap: '0.35rem', flexShrink: 0 }}>
                                                             <button onClick={() => { setActiveGroupId(group.id); setIsAddLinkModalOpen(true); }} style={{ background: 'transparent', border: '1px solid var(--border-subtle)', borderRadius: '6px', padding: '0.3rem 0.6rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '0.3rem', cursor: 'pointer', fontSize: '0.78rem' }}>
                                                                 <Plus size={12} /> Link
                                                             </button>
-                                                            <button onClick={() => handleDeleteGroup(group.id)} style={{ background: 'transparent', border: '1px solid var(--border-subtle)', borderRadius: '6px', padding: '0.3rem', color: 'var(--danger)', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+                                                            <button onClick={() => openEditGroup(group)} style={{ background: 'transparent', border: '1px solid var(--border-subtle)', borderRadius: '6px', padding: '0.3rem', color: 'var(--text-secondary)', cursor: 'pointer', display: 'flex', alignItems: 'center' }} title="Edit group">
+                                                                <Pencil size={13} />
+                                                            </button>
+                                                            <button onClick={() => handleDeleteGroup(group.id)} style={{ background: 'transparent', border: '1px solid var(--border-subtle)', borderRadius: '6px', padding: '0.3rem', color: 'var(--danger)', cursor: 'pointer', display: 'flex', alignItems: 'center' }} title="Delete group">
                                                                 <Trash2 size={13} />
                                                             </button>
                                                         </div>
@@ -378,7 +438,10 @@ export default function ProjectOverviewPage() {
                                                                         <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{link.url}</div>
                                                                     </div>
                                                                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexShrink: 0 }}>
-                                                                        <button onClick={(e) => handleDeleteLink(group.id, link.id, e)} style={{ background: 'transparent', border: 'none', color: 'var(--danger)', cursor: 'pointer', opacity: 0.5, padding: '0.15rem', display: 'flex' }}>
+                                                                        <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); openEditLink(group.id, link); }} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', opacity: 0.5, padding: '0.15rem', display: 'flex' }} title="Edit link">
+                                                                            <Pencil size={13} />
+                                                                        </button>
+                                                                        <button onClick={(e) => handleDeleteLink(group.id, link.id, e)} style={{ background: 'transparent', border: 'none', color: 'var(--danger)', cursor: 'pointer', opacity: 0.5, padding: '0.15rem', display: 'flex' }} title="Delete link">
                                                                             <Trash2 size={13} />
                                                                         </button>
                                                                         <ExternalLink size={13} style={{ color: 'var(--text-muted)', opacity: 0.6 }} />
@@ -685,6 +748,82 @@ export default function ProjectOverviewPage() {
                             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '0.5rem', paddingTop: '1rem', borderTop: '1px solid var(--border-subtle)' }}>
                                 <button type="button" onClick={() => setIsAddLinkModalOpen(false)} style={{ padding: '0.55rem 1.2rem', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'transparent', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 500 }}>Cancel</button>
                                 <button type="submit" className="btn-primary" disabled={!newLinkName.trim() || !newLinkUrl.trim()} style={{ padding: '0.55rem 1.4rem', borderRadius: '8px', fontSize: '0.85rem', fontWeight: 600 }}>Add Link</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* ═══ Modal: Edit Group ═══ */}
+            {isEditGroupModalOpen && (
+                <div className="modal-overlay" onClick={() => setIsEditGroupModalOpen(false)}>
+                    <div className="modal-content" onClick={e => e.stopPropagation()} style={{ padding: 0, overflow: 'hidden', maxWidth: '480px', width: '90vw' }}>
+                        <div style={{
+                            background: 'linear-gradient(135deg, rgba(108, 99, 255, 0.15), rgba(108, 99, 255, 0.05))',
+                            padding: '1.5rem 1.75rem',
+                            borderBottom: '1px solid var(--border-subtle)',
+                            display: 'flex', alignItems: 'center', gap: '0.75rem'
+                        }}>
+                            <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: 'var(--accent-gradient)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', boxShadow: '0 4px 12px rgba(108, 99, 255, 0.3)', flexShrink: 0 }}>
+                                <Pencil size={18} />
+                            </div>
+                            <div>
+                                <h2 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-primary)' }}>Edit Group</h2>
+                                <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-muted)' }}>Update group name or description</p>
+                            </div>
+                        </div>
+                        <form onSubmit={handleEditGroup} style={{ padding: '1.5rem 1.75rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                            <div>
+                                <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Group Name <span style={{ color: 'var(--danger)' }}>*</span></label>
+                                <input type="text" value={editGroupName} onChange={e => setEditGroupName(e.target.value)} required autoFocus style={{ width: '100%', padding: '0.7rem 0.9rem', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-secondary)', color: 'var(--text-primary)', fontSize: '0.9rem', outline: 'none', transition: 'border-color 0.2s ease', boxSizing: 'border-box' }} onFocus={e => e.currentTarget.style.borderColor = 'var(--accent-primary)'} onBlur={e => e.currentTarget.style.borderColor = 'var(--border-color)'} />
+                            </div>
+                            <div>
+                                <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Description <span style={{ fontSize: '0.75rem', fontWeight: 400, color: 'var(--text-muted)' }}>(optional)</span></label>
+                                <textarea value={editGroupDesc} onChange={e => setEditGroupDesc(e.target.value)} rows={3} style={{ width: '100%', padding: '0.7rem 0.9rem', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-secondary)', color: 'var(--text-primary)', fontSize: '0.9rem', outline: 'none', resize: 'vertical', fontFamily: 'inherit', transition: 'border-color 0.2s ease', boxSizing: 'border-box' }} onFocus={e => e.currentTarget.style.borderColor = 'var(--accent-primary)'} onBlur={e => e.currentTarget.style.borderColor = 'var(--border-color)'} />
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '0.5rem', paddingTop: '1rem', borderTop: '1px solid var(--border-subtle)' }}>
+                                <button type="button" onClick={() => setIsEditGroupModalOpen(false)} style={{ padding: '0.55rem 1.2rem', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'transparent', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 500 }}>Cancel</button>
+                                <button type="submit" className="btn-primary" disabled={!editGroupName.trim()} style={{ padding: '0.55rem 1.4rem', borderRadius: '8px', fontSize: '0.85rem', fontWeight: 600 }}>Save Changes</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* ═══ Modal: Edit Link ═══ */}
+            {isEditLinkModalOpen && (
+                <div className="modal-overlay" onClick={() => setIsEditLinkModalOpen(false)}>
+                    <div className="modal-content" onClick={e => e.stopPropagation()} style={{ padding: 0, overflow: 'hidden', maxWidth: '480px', width: '90vw' }}>
+                        <div style={{
+                            background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.12), rgba(108, 99, 255, 0.06))',
+                            padding: '1.5rem 1.75rem',
+                            borderBottom: '1px solid var(--border-subtle)',
+                            display: 'flex', alignItems: 'center', gap: '0.75rem'
+                        }}>
+                            <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: 'linear-gradient(135deg, #3b82f6, #6c63ff)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)', flexShrink: 0 }}>
+                                <Pencil size={18} />
+                            </div>
+                            <div>
+                                <h2 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-primary)' }}>Edit Link</h2>
+                                <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-muted)' }}>Update link details</p>
+                            </div>
+                        </div>
+                        <form onSubmit={handleEditLink} style={{ padding: '1.5rem 1.75rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                            <div>
+                                <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Link Title <span style={{ color: 'var(--danger)' }}>*</span></label>
+                                <input type="text" value={editLinkName} onChange={e => setEditLinkName(e.target.value)} required autoFocus style={{ width: '100%', padding: '0.7rem 0.9rem', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-secondary)', color: 'var(--text-primary)', fontSize: '0.9rem', outline: 'none', transition: 'border-color 0.2s ease', boxSizing: 'border-box' }} onFocus={e => e.currentTarget.style.borderColor = 'var(--accent-primary)'} onBlur={e => e.currentTarget.style.borderColor = 'var(--border-color)'} />
+                            </div>
+                            <div>
+                                <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>URL <span style={{ color: 'var(--danger)' }}>*</span></label>
+                                <input type="text" value={editLinkUrl} onChange={e => setEditLinkUrl(e.target.value)} required style={{ width: '100%', padding: '0.7rem 0.9rem', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-secondary)', color: 'var(--text-primary)', fontSize: '0.9rem', outline: 'none', transition: 'border-color 0.2s ease', boxSizing: 'border-box' }} onFocus={e => e.currentTarget.style.borderColor = 'var(--accent-primary)'} onBlur={e => e.currentTarget.style.borderColor = 'var(--border-color)'} />
+                            </div>
+                            <div>
+                                <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Description <span style={{ fontSize: '0.75rem', fontWeight: 400, color: 'var(--text-muted)' }}>(optional)</span></label>
+                                <textarea value={editLinkDesc} onChange={e => setEditLinkDesc(e.target.value)} rows={2} style={{ width: '100%', padding: '0.7rem 0.9rem', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-secondary)', color: 'var(--text-primary)', fontSize: '0.9rem', outline: 'none', resize: 'vertical', fontFamily: 'inherit', transition: 'border-color 0.2s ease', boxSizing: 'border-box' }} onFocus={e => e.currentTarget.style.borderColor = 'var(--accent-primary)'} onBlur={e => e.currentTarget.style.borderColor = 'var(--border-color)'} />
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '0.5rem', paddingTop: '1rem', borderTop: '1px solid var(--border-subtle)' }}>
+                                <button type="button" onClick={() => setIsEditLinkModalOpen(false)} style={{ padding: '0.55rem 1.2rem', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'transparent', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 500 }}>Cancel</button>
+                                <button type="submit" className="btn-primary" disabled={!editLinkName.trim() || !editLinkUrl.trim()} style={{ padding: '0.55rem 1.4rem', borderRadius: '8px', fontSize: '0.85rem', fontWeight: 600 }}>Save Changes</button>
                             </div>
                         </form>
                     </div>
