@@ -56,7 +56,7 @@ export class ProjectsService {
                             description: true,
                             createdAt: true,
                             updatedAt: true,
-                            _count: { select: { tasks: true, members: true } },
+                            _count: { select: { tasks: { where: { deletedAt: null } }, members: true } },
                         },
                     },
                 },
