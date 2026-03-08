@@ -9,6 +9,7 @@ import {
     Trash2,
     Edit3,
     X,
+    Info,
 } from 'lucide-react';
 
 export default function ProjectsPage() {
@@ -123,6 +124,15 @@ export default function ProjectsPage() {
                                             </div>
                                             {activeMenu === project.id && (
                                                 <div className="dropdown-menu" onClick={(e) => e.stopPropagation()}>
+                                                    <button
+                                                        onClick={() => {
+                                                            navigate(`/projects/${project.id}/overview`);
+                                                            setActiveMenu(null);
+                                                        }}
+                                                    >
+                                                        <Info size={14} />
+                                                        Overview
+                                                    </button>
                                                     <button
                                                         onClick={() => {
                                                             setEditName(project.name);

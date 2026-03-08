@@ -53,6 +53,41 @@ let VaultAccountService = class VaultAccountService {
             },
         };
     }
+    async findByProject(projectId, params) {
+        const page = params.page || 1;
+        const limit = params.limit || 20;
+        const skip = (page - 1) * limit;
+        const where = { projectId, isDeleted: false };
+        if (params.search) {
+            where.OR = [
+                { name: { contains: params.search, mode: 'insensitive' } },
+                { username: { contains: params.search, mode: 'insensitive' } },
+                { email: { contains: params.search, mode: 'insensitive' } },
+            ];
+        }
+        const [data, total] = await Promise.all([
+            this.prisma.vaultAccount.findMany({
+                where,
+                include: {
+                    tool: { select: { id: true, name: true, category: true, iconUrl: true } },
+                    _count: { select: { secrets: { where: { isDeleted: false } } } }
+                },
+                orderBy: { createdAt: 'desc' },
+                skip,
+                take: limit,
+            }),
+            this.prisma.vaultAccount.count({ where }),
+        ]);
+        return {
+            data,
+            pagination: {
+                page, limit, total,
+                totalPages: Math.ceil(total / limit),
+                hasNextPage: page * limit < total,
+                hasPrevPage: page > 1,
+            },
+        };
+    }
     async findById(id) {
         const account = await this.prisma.vaultAccount.findFirst({
             where: { id, isDeleted: false },

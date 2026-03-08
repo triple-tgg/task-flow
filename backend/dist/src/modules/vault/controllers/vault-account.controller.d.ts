@@ -32,6 +32,41 @@ export declare class VaultAccountController {
             hasPrevPage: boolean;
         };
     }>;
+    findByProject(projectId: string, page?: string, limit?: string, search?: string): Promise<{
+        data: ({
+            _count: {
+                secrets: number;
+            };
+            tool: {
+                id: string;
+                name: string;
+                category: string | null;
+                iconUrl: string | null;
+            };
+        } & {
+            id: string;
+            email: string | null;
+            name: string;
+            createdAt: Date;
+            updatedAt: Date;
+            projectId: string | null;
+            website: string | null;
+            accountType: import("@prisma/client").$Enums.VaultAccountType;
+            username: string | null;
+            note: string | null;
+            isDeleted: boolean;
+            createdBy: string;
+            toolId: string;
+        })[];
+        pagination: {
+            page: number;
+            limit: number;
+            total: number;
+            totalPages: number;
+            hasNextPage: boolean;
+            hasPrevPage: boolean;
+        };
+    }>;
     findById(id: string): Promise<{
         _count: {
             secrets: number;

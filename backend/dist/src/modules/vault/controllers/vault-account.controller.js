@@ -30,6 +30,13 @@ let VaultAccountController = class VaultAccountController {
             search,
         });
     }
+    findByProject(projectId, page, limit, search) {
+        return this.accountService.findByProject(projectId, {
+            page: page ? parseInt(page, 10) : undefined,
+            limit: limit ? parseInt(limit, 10) : undefined,
+            search,
+        });
+    }
     findById(id) {
         return this.accountService.findById(id);
     }
@@ -55,6 +62,17 @@ __decorate([
     __metadata("design:paramtypes", [String, String, String, String]),
     __metadata("design:returntype", void 0)
 ], VaultAccountController.prototype, "findByTool", null);
+__decorate([
+    (0, common_1.Get)('projects/:projectId/accounts'),
+    (0, swagger_1.ApiOperation)({ summary: 'List accounts for a project' }),
+    __param(0, (0, common_1.Param)('projectId')),
+    __param(1, (0, common_1.Query)('page')),
+    __param(2, (0, common_1.Query)('limit')),
+    __param(3, (0, common_1.Query)('search')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String, String, String]),
+    __metadata("design:returntype", void 0)
+], VaultAccountController.prototype, "findByProject", null);
 __decorate([
     (0, common_1.Get)('accounts/:id'),
     (0, swagger_1.ApiOperation)({ summary: 'Get account detail (secret keys only, NO values)' }),

@@ -7,6 +7,7 @@ import ForgotPasswordPage from './pages/auth/ForgotPasswordPage';
 import ResetPasswordPage from './pages/auth/ResetPasswordPage';
 import ProjectsPage from './pages/ProjectsPage';
 import ProjectDetailPage from './pages/ProjectDetailPage';
+import ProjectOverviewPage from './pages/ProjectOverviewPage';
 import DashboardPage from './pages/DashboardPage';
 import CalendarPage from './pages/CalendarPage';
 import GanttPage from './pages/GanttPage';
@@ -107,6 +108,14 @@ export default function App() {
           element={
             <ProtectedRoute>
               <ProjectDetailPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/projects/:projectId/overview"
+          element={
+            <ProtectedRoute>
+              <ProjectOverviewPage />
             </ProtectedRoute>
           }
         />

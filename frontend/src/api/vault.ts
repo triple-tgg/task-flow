@@ -28,7 +28,7 @@ export interface VaultAccount {
     createdBy: string;
     createdAt: string;
     updatedAt: string;
-    tool?: { id: string; name: string; category?: string };
+    tool?: { id: string; name: string; category?: string; iconUrl?: string };
     secrets?: Array<{ id: string; key: string; keyVersion: number; note?: string; createdAt: string; updatedAt: string }>;
     _count: { secrets: number };
 }
@@ -87,6 +87,9 @@ export const vaultToolsApi = {
 export const vaultAccountsApi = {
     listByTool: (toolId: string, params?: { page?: number; limit?: number; search?: string }) =>
         api.get<{ data: VaultAccount[]; pagination: Pagination }>(`/vault/tools/${toolId}/accounts`, { params }).then(r => r.data),
+
+    listByProject: (projectId: string, params?: { page?: number; limit?: number; search?: string }) =>
+        api.get<{ data: VaultAccount[]; pagination: Pagination }>(`/vault/projects/${projectId}/accounts`, { params }).then(r => r.data),
 
     getById: (id: string) =>
         api.get<VaultAccount>(`/vault/accounts/${id}`).then(r => r.data),

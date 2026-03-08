@@ -25,6 +25,21 @@ export class VaultAccountController {
         });
     }
 
+    @Get('projects/:projectId/accounts')
+    @ApiOperation({ summary: 'List accounts for a project' })
+    findByProject(
+        @Param('projectId') projectId: string,
+        @Query('page') page?: string,
+        @Query('limit') limit?: string,
+        @Query('search') search?: string,
+    ) {
+        return this.accountService.findByProject(projectId, {
+            page: page ? parseInt(page, 10) : undefined,
+            limit: limit ? parseInt(limit, 10) : undefined,
+            search,
+        });
+    }
+
     @Get('accounts/:id')
     @ApiOperation({ summary: 'Get account detail (secret keys only, NO values)' })
     findById(@Param('id') id: string) {
