@@ -425,7 +425,7 @@ export default function ProjectDetailPage() {
                             <span>Dashboard</span>
                         </button>
                         <ChevronRight size={14} className="breadcrumb-sep" />
-                        <button className="breadcrumb-item" onClick={() => navigate('/dashboard')}>
+                        <button className="breadcrumb-item" onClick={() => navigate('/projects')}>
                             <FolderKanban size={14} />
                             <span>Projects</span>
                         </button>
