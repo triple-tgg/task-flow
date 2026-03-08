@@ -14,6 +14,9 @@ import WorkloadPage from './pages/WorkloadPage';
 import TasksPage from './pages/TasksPage';
 import PublicProjectPage from './pages/PublicProjectPage';
 import EnvironmentsPage from './pages/EnvironmentsPage';
+import VaultAccountsPage from './pages/VaultAccountsPage';
+import VaultAccountDetailPage from './pages/VaultAccountDetailPage';
+import VaultAuditPage from './pages/VaultAuditPage';
 import './index.css';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -159,6 +162,30 @@ export default function App() {
           element={
             <ProtectedRoute>
               <EnvironmentsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/environments/tools/:toolId"
+          element={
+            <ProtectedRoute>
+              <VaultAccountsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/environments/accounts/:accountId"
+          element={
+            <ProtectedRoute>
+              <VaultAccountDetailPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/environments/audit"
+          element={
+            <ProtectedRoute>
+              <VaultAuditPage />
             </ProtectedRoute>
           }
         />

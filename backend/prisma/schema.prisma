@@ -266,3 +266,87 @@ model ActivityLog {
   @@index([entityType, entityId])
   @@map("activity_logs")
 }
+
+// ─── Vault Tables (TDD Section 14) ───────────────────────
+
+model VaultTool {
+  id          String    @id @default(uuid())
+  name        String
+  category    String?
+  website     String?
+  iconUrl     String?
+  description String?
+  isDeleted   Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  createdBy   String
+
+  accounts VaultAccount[]
+
+  @@index([isDeleted])
+  @@index([category])
+  @@map("vault_tools")
+}
+
+model VaultAccount {
+  id          String    @id @default(uuid())
+  toolId      String
+  projectId   String?
+  name        String
+  username    String?
+  email       String?
+  note        String?
+  isDeleted   Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  createdBy   String
+
+  tool    VaultTool     @relation(fields: [toolId], references: [id], onDelete: Cascade)
+  secrets VaultSecret[]
+
+  @@index([toolId, isDeleted])
+  @@index([isDeleted])
+  @@index([projectId])
+  @@map("vault_accounts")
+}
+
+model VaultSecret {
+  id         String   @id @default(uuid())
+  accountId  String
+  key        String   // UPPER_SNAKE_CASE: PASSWORD, API_KEY, TOKEN
+  value      String   // encrypted (AES-256-GCM JSON payload)
+  keyVersion Int      @default(1)
+  isDeleted  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  createdBy  String
+
+  account VaultAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@unique([accountId, key])
+  @@index([accountId, isDeleted])
+  @@map("vault_secrets")
+}
+
+enum VaultAction {
+  VIEW
+  CREATE
+  UPDATE
+  DELETE
+  DECRYPT
+}
+
+model VaultAuditLog {
+  id         String      @id @default(uuid())
+  userId     String
+  action     VaultAction
+  entityType String      // 'tool' | 'account' | 'secret'
+  entityId   String
+  metadata   Json?
+  ipAddress  String?
+  createdAt  DateTime    @default(now())
+
+  @@index([createdAt])
+  @@index([userId, createdAt])
+  @@map("vault_audit_logs")
+}

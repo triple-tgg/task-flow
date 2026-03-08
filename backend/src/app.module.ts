@@ -17,6 +17,7 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { StorageModule } from './modules/storage/storage.module';
 import { AttachmentsModule } from './modules/attachments/attachments.module';
+import { VaultModule } from './modules/vault/vault.module';
 
 @Module({
   imports: [
@@ -48,6 +49,9 @@ import { AttachmentsModule } from './modules/attachments/attachments.module';
     // File storage support
     StorageModule,
     AttachmentsModule,
+
+    // Vault / Credential Manager (TDD Section 14)
+    VaultModule,
 
     // Serve uploaded files statically at /uploads
     ServeStaticModule.forRoot({
