@@ -10,14 +10,16 @@ exports.ProjectsModule = void 0;
 const common_1 = require("@nestjs/common");
 const projects_controller_1 = require("./projects.controller");
 const projects_service_1 = require("./projects.service");
+const access_groups_controller_1 = require("./controllers/access-groups.controller");
+const access_groups_service_1 = require("./services/access-groups.service");
 let ProjectsModule = class ProjectsModule {
 };
 exports.ProjectsModule = ProjectsModule;
 exports.ProjectsModule = ProjectsModule = __decorate([
     (0, common_1.Module)({
-        controllers: [projects_controller_1.ProjectsController],
-        providers: [projects_service_1.ProjectsService],
-        exports: [projects_service_1.ProjectsService],
+        controllers: [projects_controller_1.ProjectsController, access_groups_controller_1.AccessGroupsController],
+        providers: [projects_service_1.ProjectsService, access_groups_service_1.AccessGroupsService],
+        exports: [projects_service_1.ProjectsService, access_groups_service_1.AccessGroupsService],
     })
 ], ProjectsModule);
 //# sourceMappingURL=projects.module.js.map

@@ -39,9 +39,58 @@ export const projectsApi = {
         api.delete(`/projects/${projectId}/share`).then(r => r.data),
 };
 
+// ─── Types ───────────────────────────────────────────
+
+export interface AccessLink {
+    id: string;
+    groupId: string;
+    name: string;
+    url: string;
+    description?: string;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface AccessGroup {
+    id: string;
+    projectId: string;
+    name: string;
+    description?: string;
+    links: AccessLink[];
+    createdAt: string;
+    updatedAt: string;
+}
+
 // ─── Public API (no auth) ────────────────────────────
 
 export const publicApi = {
     getProject: (token: string) =>
         axios.get(`${API_BASE_URL}/projects/public/${token}`).then(r => r.data),
 };
+
+// ─── Access Groups API ───────────────────────────────
+
+export const accessGroupsApi = {
+    list: (projectId: string): Promise<AccessGroup[]> =>
+        api.get(`/projects/${projectId}/access-groups`).then(r => r.data),
+
+    create: (projectId: string, data: { name: string; description?: string }): Promise<AccessGroup> =>
+        api.post(`/projects/${projectId}/access-groups`, data).then(r => r.data),
+
+    update: (projectId: string, groupId: string, data: { name?: string; description?: string }): Promise<AccessGroup> =>
+        api.patch(`/projects/${projectId}/access-groups/${groupId}`, data).then(r => r.data),
+
+    remove: (projectId: string, groupId: string) =>
+        api.delete(`/projects/${projectId}/access-groups/${groupId}`).then(r => r.data),
+
+    // Links inside the groups
+    createLink: (projectId: string, groupId: string, data: { name: string; url: string; description?: string }): Promise<AccessLink> =>
+        api.post(`/projects/${projectId}/access-groups/${groupId}/links`, data).then(r => r.data),
+
+    updateLink: (projectId: string, groupId: string, linkId: string, data: { name?: string; url?: string; description?: string }): Promise<AccessLink> =>
+        api.patch(`/projects/${projectId}/access-groups/${groupId}/links/${linkId}`, data).then(r => r.data),
+
+    removeLink: (projectId: string, groupId: string, linkId: string) =>
+        api.delete(`/projects/${projectId}/access-groups/${groupId}/links/${linkId}`).then(r => r.data),
+};
+

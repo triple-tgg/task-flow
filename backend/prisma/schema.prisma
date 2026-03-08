@@ -98,6 +98,7 @@ model Project {
   members ProjectMember[]
   tasks   Task[]
   tags    Tag[]
+  accessGroups AccessGroup[]
 
   @@index([shareToken])
   @@map("projects")
@@ -357,4 +358,36 @@ model VaultAuditLog {
   @@index([createdAt])
   @@index([userId, createdAt])
   @@map("vault_audit_logs")
+}
+
+// ─── Access Links Tables (Project Overview) ─────────────────
+
+model AccessGroup {
+  id          String   @id @default(uuid())
+  projectId   String
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  project Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  links   AccessLink[]
+
+  @@index([projectId])
+  @@map("access_groups")
+}
+
+model AccessLink {
+  id          String   @id @default(uuid())
+  groupId     String
+  name        String
+  url         String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  group AccessGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@index([groupId])
+  @@map("access_links")
 }
