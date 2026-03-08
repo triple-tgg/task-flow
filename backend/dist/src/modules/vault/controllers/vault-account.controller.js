@@ -23,10 +23,11 @@ let VaultAccountController = class VaultAccountController {
     constructor(accountService) {
         this.accountService = accountService;
     }
-    findByTool(toolId, page, limit) {
+    findByTool(toolId, page, limit, search) {
         return this.accountService.findByTool(toolId, {
             page: page ? parseInt(page, 10) : undefined,
             limit: limit ? parseInt(limit, 10) : undefined,
+            search,
         });
     }
     findById(id) {
@@ -49,8 +50,9 @@ __decorate([
     __param(0, (0, common_1.Param)('toolId')),
     __param(1, (0, common_1.Query)('page')),
     __param(2, (0, common_1.Query)('limit')),
+    __param(3, (0, common_1.Query)('search')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String, String]),
+    __metadata("design:paramtypes", [String, String, String, String]),
     __metadata("design:returntype", void 0)
 ], VaultAccountController.prototype, "findByTool", null);
 __decorate([

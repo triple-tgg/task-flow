@@ -3,7 +3,7 @@ import { CreateAccountDto, UpdateAccountDto } from '../dto';
 export declare class VaultAccountController {
     private readonly accountService;
     constructor(accountService: VaultAccountService);
-    findByTool(toolId: string, page?: string, limit?: string): Promise<{
+    findByTool(toolId: string, page?: string, limit?: string, search?: string): Promise<{
         data: ({
             _count: {
                 secrets: number;

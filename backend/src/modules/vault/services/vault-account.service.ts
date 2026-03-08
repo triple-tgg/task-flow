@@ -11,12 +11,19 @@ export class VaultAccountService {
         private readonly audit: VaultAuditService,
     ) { }
 
-    async findByTool(toolId: string, params: { page?: number; limit?: number }) {
+    async findByTool(toolId: string, params: { page?: number; limit?: number; search?: string }) {
         const page = params.page || 1;
         const limit = params.limit || 20;
         const skip = (page - 1) * limit;
 
-        const where = { toolId, isDeleted: false };
+        const where: any = { toolId, isDeleted: false };
+        if (params.search) {
+            where.OR = [
+                { name: { contains: params.search, mode: 'insensitive' } },
+                { username: { contains: params.search, mode: 'insensitive' } },
+                { email: { contains: params.search, mode: 'insensitive' } },
+            ];
+        }
 
         const [data, total] = await Promise.all([
             this.prisma.vaultAccount.findMany({

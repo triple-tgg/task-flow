@@ -85,7 +85,7 @@ export const vaultToolsApi = {
 // ─── Vault Accounts API ──────────────────────────────
 
 export const vaultAccountsApi = {
-    listByTool: (toolId: string, params?: { page?: number; limit?: number }) =>
+    listByTool: (toolId: string, params?: { page?: number; limit?: number; search?: string }) =>
         api.get<{ data: VaultAccount[]; pagination: Pagination }>(`/vault/tools/${toolId}/accounts`, { params }).then(r => r.data),
 
     getById: (id: string) =>

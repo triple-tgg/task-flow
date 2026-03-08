@@ -26,6 +26,13 @@ let VaultAccountService = class VaultAccountService {
         const limit = params.limit || 20;
         const skip = (page - 1) * limit;
         const where = { toolId, isDeleted: false };
+        if (params.search) {
+            where.OR = [
+                { name: { contains: params.search, mode: 'insensitive' } },
+                { username: { contains: params.search, mode: 'insensitive' } },
+                { email: { contains: params.search, mode: 'insensitive' } },
+            ];
+        }
         const [data, total] = await Promise.all([
             this.prisma.vaultAccount.findMany({
                 where,

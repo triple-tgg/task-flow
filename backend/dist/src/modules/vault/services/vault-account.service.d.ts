@@ -8,6 +8,7 @@ export declare class VaultAccountService {
     findByTool(toolId: string, params: {
         page?: number;
         limit?: number;
+        search?: string;
     }): Promise<{
         data: ({
             _count: {

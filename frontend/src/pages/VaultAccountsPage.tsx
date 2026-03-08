@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import { vaultToolsApi, vaultAccountsApi } from '../api/vault';
 import type { VaultTool, VaultAccount } from '../api/vault';
-import { Plus, ArrowLeft, User, Trash2, Edit2, X, Key, Lock, Server } from 'lucide-react';
+import { Plus, ArrowLeft, User, Trash2, Edit2, X, Key, Lock, Server, Search } from 'lucide-react';
 
 export default function VaultAccountsPage() {
     const { toolId } = useParams<{ toolId: string }>();
@@ -11,6 +11,7 @@ export default function VaultAccountsPage() {
     const [tool, setTool] = useState<VaultTool | null>(null);
     const [accounts, setAccounts] = useState<VaultAccount[]>([]);
     const [loading, setLoading] = useState(true);
+    const [search, setSearch] = useState('');
     const [showModal, setShowModal] = useState(false);
     const [editId, setEditId] = useState<string | null>(null);
     const [form, setForm] = useState({
@@ -24,7 +25,7 @@ export default function VaultAccountsPage() {
         try {
             const [t, a] = await Promise.all([
                 vaultToolsApi.getById(toolId),
-                vaultAccountsApi.listByTool(toolId),
+                vaultAccountsApi.listByTool(toolId, { search: search || undefined }),
             ]);
             setTool(t);
             setAccounts(a.data);
@@ -32,7 +33,7 @@ export default function VaultAccountsPage() {
         finally { setLoading(false); }
     };
 
-    useEffect(() => { fetchData(); }, [toolId]);
+    useEffect(() => { fetchData(); }, [toolId, search]);
 
     const handleSave = async () => {
         if (!form.name.trim() || !toolId) return;
@@ -96,6 +97,18 @@ export default function VaultAccountsPage() {
                         <button className="btn-primary" onClick={() => { setShowModal(true); setEditId(null); setForm({ name: '', username: '', email: '', note: '', website: '', accountType: 'ENVIRONMENT' }); }}>
                             <Plus size={16} /> Add Account
                         </button>
+                    </div>
+
+                    {/* Search */}
+                    <div className="vault-filters">
+                        <div className="vault-search">
+                            <Search size={16} />
+                            <input
+                                placeholder="Search accounts..."
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                            />
+                        </div>
                     </div>
 
                     {loading ? (
