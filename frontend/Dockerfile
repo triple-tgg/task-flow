@@ -16,16 +16,16 @@ ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
 
 RUN npm run build
 
-# ── Production (nginx) ─────────
-FROM nginx:alpine AS production
+# ── Production ─────────────────
+FROM node:20-alpine AS production
+
+WORKDIR /app
+
+# Install serve (lightweight static file server)
+RUN npm install -g serve
 
 # Copy built files
-COPY --from=builder /app/dist /usr/share/nginx/html
+COPY --from=builder /app/dist ./dist
 
-# Copy nginx config template
-COPY nginx.conf /etc/nginx/nginx.conf.template
-
-EXPOSE 80
-
-# Only substitute $PORT, preserve nginx variables like $uri
-CMD ["/bin/sh", "-c", "envsubst '${PORT}' < /etc/nginx/nginx.conf.template > /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"]
+# Railway injects PORT automatically
+CMD ["sh", "-c", "serve -s dist -l ${PORT:-3000}"]
