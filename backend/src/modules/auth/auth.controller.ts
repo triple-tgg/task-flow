@@ -76,8 +76,8 @@ export class AuthController {
         // Set refresh token as httpOnly cookie
         res.cookie('refreshToken', result.refreshToken, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
+            secure: process.env.NODE_ENV !== 'development',
+            sameSite: process.env.NODE_ENV === 'development' ? 'lax' : 'none',
             maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
             path: '/',
         });
@@ -115,8 +115,8 @@ export class AuthController {
         // Set new refresh token cookie
         res.cookie('refreshToken', result.refreshToken, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
+            secure: process.env.NODE_ENV !== 'development',
+            sameSite: process.env.NODE_ENV === 'development' ? 'lax' : 'none',
             maxAge: 7 * 24 * 60 * 60 * 1000,
             path: '/',
         });
@@ -142,8 +142,8 @@ export class AuthController {
         // Clear cookie
         res.clearCookie('refreshToken', {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
+            secure: process.env.NODE_ENV !== 'development',
+            sameSite: process.env.NODE_ENV === 'development' ? 'lax' : 'none',
             path: '/',
         });
 
@@ -206,7 +206,7 @@ export class AuthController {
             res.cookie('refreshToken', result.refreshToken, {
                 httpOnly: true,
                 secure: process.env.NODE_ENV !== 'development',
-                sameSite: 'lax',
+                sameSite: process.env.NODE_ENV === 'development' ? 'lax' : 'none',
                 maxAge: 7 * 24 * 60 * 60 * 1000,
                 path: '/',
             });

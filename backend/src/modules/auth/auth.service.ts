@@ -573,8 +573,8 @@ export class AuthService {
 
     // ─── Helpers ──────────────────────────────────────────
 
-    generateAccessToken(user: { id: string; email: string; role: string }) {
-        const payload = { sub: user.id, email: user.email, role: user.role };
+    generateAccessToken(user: { id: string; email: string; role: string; name?: string }) {
+        const payload = { sub: user.id, email: user.email, role: user.role, name: user.name || '' };
         const secret = this.configService.get<string>('JWT_SECRET')!;
         const expiresIn = this.configService.get<string>('JWT_ACCESS_EXPIRATION') || '15m';
         return this.jwtService.sign(payload, {

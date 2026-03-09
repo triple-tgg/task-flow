@@ -453,7 +453,7 @@ let AuthService = AuthService_1 = class AuthService {
         return { message: 'Password reset successfully. Please log in with your new password.' };
     }
     generateAccessToken(user) {
-        const payload = { sub: user.id, email: user.email, role: user.role };
+        const payload = { sub: user.id, email: user.email, role: user.role, name: user.name || '' };
         const secret = this.configService.get('JWT_SECRET');
         const expiresIn = this.configService.get('JWT_ACCESS_EXPIRATION') || '15m';
         return this.jwtService.sign(payload, {

@@ -73,6 +73,7 @@ export declare class AuthService {
         id: string;
         email: string;
         role: string;
+        name?: string;
     }): string;
     private generateRefreshToken;
     hashToken(token: string): string;

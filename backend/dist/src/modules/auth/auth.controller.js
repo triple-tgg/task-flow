@@ -76,8 +76,8 @@ let AuthController = class AuthController {
         const result = await this.authService.login(dto.email, dto.password, userAgent, ipAddress);
         res.cookie('refreshToken', result.refreshToken, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
+            secure: process.env.NODE_ENV !== 'development',
+            sameSite: process.env.NODE_ENV === 'development' ? 'lax' : 'none',
             maxAge: 7 * 24 * 60 * 60 * 1000,
             path: '/',
         });
@@ -99,8 +99,8 @@ let AuthController = class AuthController {
         const result = await this.authService.refreshTokens(refreshToken, userAgent, ipAddress);
         res.cookie('refreshToken', result.refreshToken, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
+            secure: process.env.NODE_ENV !== 'development',
+            sameSite: process.env.NODE_ENV === 'development' ? 'lax' : 'none',
             maxAge: 7 * 24 * 60 * 60 * 1000,
             path: '/',
         });
@@ -116,8 +116,8 @@ let AuthController = class AuthController {
         }
         res.clearCookie('refreshToken', {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
+            secure: process.env.NODE_ENV !== 'development',
+            sameSite: process.env.NODE_ENV === 'development' ? 'lax' : 'none',
             path: '/',
         });
         return { message: 'Logged out successfully' };
@@ -142,7 +142,7 @@ let AuthController = class AuthController {
             res.cookie('refreshToken', result.refreshToken, {
                 httpOnly: true,
                 secure: process.env.NODE_ENV !== 'development',
-                sameSite: 'lax',
+                sameSite: process.env.NODE_ENV === 'development' ? 'lax' : 'none',
                 maxAge: 7 * 24 * 60 * 60 * 1000,
                 path: '/',
             });

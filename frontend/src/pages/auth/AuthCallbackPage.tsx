@@ -4,14 +4,33 @@ import { useAuthStore } from '../../stores/authStore';
 import { setAccessToken } from '../../api/axios';
 
 /**
+ * Decodes a JWT and returns the payload (without verifying the signature).
+ * Safe for client-side use since the server already verified the token.
+ */
+function decodeJwt(token: string): Record<string, any> | null {
+    try {
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(
+            atob(base64)
+                .split('')
+                .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+                .join('')
+        );
+        return JSON.parse(jsonPayload);
+    } catch {
+        return null;
+    }
+}
+
+/**
  * Handles the OAuth callback redirect from the backend.
  * The backend redirects here with ?token=<accessToken>
- * This page saves the token and redirects to dashboard.
+ * This page decodes the JWT to get user info, sets auth state, and redirects to dashboard.
  */
 export default function AuthCallbackPage() {
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
-    const { refreshAuth } = useAuthStore();
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
@@ -25,19 +44,31 @@ export default function AuthCallbackPage() {
         }
 
         if (token) {
-            // Set the access token and refresh auth to load user data
-            setAccessToken(token);
-            refreshAuth().then(() => {
+            // Decode JWT to extract user info
+            const payload = decodeJwt(token);
+
+            if (payload && payload.sub) {
+                // Set token and user state directly (no refresh call needed)
+                setAccessToken(token);
+                useAuthStore.setState({
+                    user: {
+                        id: payload.sub,
+                        name: payload.name || '',
+                        email: payload.email || '',
+                        role: payload.role || 'member',
+                    },
+                    isAuthenticated: true,
+                });
                 navigate('/dashboard', { replace: true });
-            }).catch(() => {
-                // If refresh fails, just navigate with the token set
-                navigate('/dashboard', { replace: true });
-            });
+            } else {
+                setError('Invalid token received.');
+                setTimeout(() => navigate('/login'), 3000);
+            }
         } else {
             setError('No authentication token received.');
             setTimeout(() => navigate('/login'), 3000);
         }
-    }, [searchParams, navigate, refreshAuth]);
+    }, [searchParams, navigate]);
 
     return (
         <div className="auth-layout">
