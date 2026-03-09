@@ -18,6 +18,7 @@ import { join } from 'path';
 import { StorageModule } from './modules/storage/storage.module';
 import { AttachmentsModule } from './modules/attachments/attachments.module';
 import { VaultModule } from './modules/vault/vault.module';
+import { HealthModule } from './modules/health/health.module';
 
 @Module({
   imports: [
@@ -52,6 +53,9 @@ import { VaultModule } from './modules/vault/vault.module';
 
     // Vault / Credential Manager (TDD Section 14)
     VaultModule,
+
+    // Health check (public, no auth)
+    HealthModule,
 
     // Serve uploaded files statically at /uploads
     ServeStaticModule.forRoot({

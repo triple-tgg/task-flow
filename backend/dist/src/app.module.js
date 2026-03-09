@@ -27,6 +27,7 @@ const path_1 = require("path");
 const storage_module_1 = require("./modules/storage/storage.module");
 const attachments_module_1 = require("./modules/attachments/attachments.module");
 const vault_module_1 = require("./modules/vault/vault.module");
+const health_module_1 = require("./modules/health/health.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -53,6 +54,7 @@ exports.AppModule = AppModule = __decorate([
             storage_module_1.StorageModule,
             attachments_module_1.AttachmentsModule,
             vault_module_1.VaultModule,
+            health_module_1.HealthModule,
             serve_static_1.ServeStaticModule.forRoot({
                 rootPath: (0, path_1.join)(process.cwd(), 'uploads'),
                 serveRoot: '/uploads',
