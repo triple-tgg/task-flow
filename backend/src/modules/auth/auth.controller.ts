@@ -191,27 +191,33 @@ export class AuthController {
         @Req() req: express.Request,
         @Res() res: express.Response,
     ) {
-        const googleUser = (req as any).user;
-        const userAgent = req.headers['user-agent'];
-        const ipAddress = req.ip;
+        try {
+            const googleUser = (req as any).user;
+            const userAgent = req.headers['user-agent'];
+            const ipAddress = req.ip;
 
-        const result = await this.authService.googleLogin(
-            googleUser,
-            userAgent,
-            ipAddress,
-        );
+            const result = await this.authService.googleLogin(
+                googleUser,
+                userAgent,
+                ipAddress,
+            );
 
-        // Set refresh token cookie
-        res.cookie('refreshToken', result.refreshToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV !== 'development',
-            sameSite: 'lax',
-            maxAge: 7 * 24 * 60 * 60 * 1000,
-            path: '/',
-        });
+            // Set refresh token cookie
+            res.cookie('refreshToken', result.refreshToken, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV !== 'development',
+                sameSite: 'lax',
+                maxAge: 7 * 24 * 60 * 60 * 1000,
+                path: '/',
+            });
 
-        // Redirect to frontend with access token
-        const frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'http://localhost:5173';
-        res.redirect(`${frontendUrl}/auth/callback?token=${result.accessToken}`);
+            // Redirect to frontend with access token
+            const frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'http://localhost:5173';
+            res.redirect(`${frontendUrl}/auth/callback?token=${result.accessToken}`);
+        } catch (error) {
+            console.error('Google OAuth callback error:', error);
+            const frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'http://localhost:5173';
+            res.redirect(`${frontendUrl}/login?error=oauth_failed`);
+        }
     }
 }

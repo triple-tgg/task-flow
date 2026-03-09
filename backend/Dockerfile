@@ -37,4 +37,4 @@ RUN mkdir -p uploads
 EXPOSE 3000
 
 # Start script: migrate then serve
-CMD ["sh", "-c", "export DATABASE_URL=\"postgresql://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}?schema=${DB_SCHEMA}\" && npx prisma db push --skip-generate && node dist/src/main"]
+CMD ["sh", "-c", "export DATABASE_URL=\"postgresql://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}?schema=${DB_SCHEMA}\" && npx prisma db push --skip-generate --accept-data-loss && node dist/src/main"]

@@ -134,19 +134,26 @@ let AuthController = class AuthController {
     async googleAuth() {
     }
     async googleCallback(req, res) {
-        const googleUser = req.user;
-        const userAgent = req.headers['user-agent'];
-        const ipAddress = req.ip;
-        const result = await this.authService.googleLogin(googleUser, userAgent, ipAddress);
-        res.cookie('refreshToken', result.refreshToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV !== 'development',
-            sameSite: 'lax',
-            maxAge: 7 * 24 * 60 * 60 * 1000,
-            path: '/',
-        });
-        const frontendUrl = this.configService.get('FRONTEND_URL') || 'http://localhost:5173';
-        res.redirect(`${frontendUrl}/auth/callback?token=${result.accessToken}`);
+        try {
+            const googleUser = req.user;
+            const userAgent = req.headers['user-agent'];
+            const ipAddress = req.ip;
+            const result = await this.authService.googleLogin(googleUser, userAgent, ipAddress);
+            res.cookie('refreshToken', result.refreshToken, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV !== 'development',
+                sameSite: 'lax',
+                maxAge: 7 * 24 * 60 * 60 * 1000,
+                path: '/',
+            });
+            const frontendUrl = this.configService.get('FRONTEND_URL') || 'http://localhost:5173';
+            res.redirect(`${frontendUrl}/auth/callback?token=${result.accessToken}`);
+        }
+        catch (error) {
+            console.error('Google OAuth callback error:', error);
+            const frontendUrl = this.configService.get('FRONTEND_URL') || 'http://localhost:5173';
+            res.redirect(`${frontendUrl}/login?error=oauth_failed`);
+        }
     }
 };
 exports.AuthController = AuthController;
