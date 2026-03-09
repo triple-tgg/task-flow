@@ -48,14 +48,18 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthController = void 0;
 const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
+const config_1 = require("@nestjs/config");
 const express = __importStar(require("express"));
 const auth_service_1 = require("./auth.service");
 const dto_1 = require("./dto");
 const decorators_1 = require("./decorators");
+const google_oauth_guard_1 = require("./guards/google-oauth.guard");
 let AuthController = class AuthController {
     authService;
-    constructor(authService) {
+    configService;
+    constructor(authService, configService) {
         this.authService = authService;
+        this.configService = configService;
     }
     async register(dto) {
         return this.authService.register(dto.name, dto.email, dto.password);
@@ -126,6 +130,23 @@ let AuthController = class AuthController {
     }
     async resetPassword(dto) {
         return this.authService.resetPassword(dto.token, dto.newPassword);
+    }
+    async googleAuth() {
+    }
+    async googleCallback(req, res) {
+        const googleUser = req.user;
+        const userAgent = req.headers['user-agent'];
+        const ipAddress = req.ip;
+        const result = await this.authService.googleLogin(googleUser, userAgent, ipAddress);
+        res.cookie('refreshToken', result.refreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV !== 'development',
+            sameSite: 'lax',
+            maxAge: 7 * 24 * 60 * 60 * 1000,
+            path: '/',
+        });
+        const frontendUrl = this.configService.get('FRONTEND_URL') || 'http://localhost:5173';
+        res.redirect(`${frontendUrl}/auth/callback?token=${result.accessToken}`);
     }
 };
 exports.AuthController = AuthController;
@@ -225,9 +246,30 @@ __decorate([
     __metadata("design:paramtypes", [dto_1.ResetPasswordDto]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "resetPassword", null);
+__decorate([
+    (0, decorators_1.Public)(),
+    (0, common_1.Get)('google'),
+    (0, common_1.UseGuards)(google_oauth_guard_1.GoogleOAuthGuard),
+    (0, swagger_1.ApiOperation)({ summary: 'Initiate Google OAuth login' }),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "googleAuth", null);
+__decorate([
+    (0, decorators_1.Public)(),
+    (0, common_1.Get)('google/callback'),
+    (0, common_1.UseGuards)(google_oauth_guard_1.GoogleOAuthGuard),
+    (0, swagger_1.ApiOperation)({ summary: 'Google OAuth callback' }),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Res)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "googleCallback", null);
 exports.AuthController = AuthController = __decorate([
     (0, swagger_1.ApiTags)('auth'),
     (0, common_1.Controller)('auth'),
-    __metadata("design:paramtypes", [auth_service_1.AuthService])
+    __metadata("design:paramtypes", [auth_service_1.AuthService,
+        config_1.ConfigService])
 ], AuthController);
 //# sourceMappingURL=auth.controller.js.map

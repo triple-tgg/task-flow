@@ -11,6 +11,22 @@ export declare class AuthService {
         message: string;
         userId: string;
     }>;
+    googleLogin(googleProfile: {
+        googleId: string;
+        email: string;
+        name: string;
+        picture?: string;
+    }, userAgent?: string, ipAddress?: string): Promise<{
+        accessToken: string;
+        refreshToken: `${string}-${string}-${string}-${string}-${string}`;
+        user: {
+            id: any;
+            name: any;
+            email: any;
+            role: any;
+            avatarUrl: any;
+        };
+    }>;
     verifyEmail(token: string): Promise<{
         message: string;
     }>;

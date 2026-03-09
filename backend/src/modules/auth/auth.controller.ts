@@ -9,17 +9,23 @@ import {
     HttpCode,
     HttpStatus,
     UnauthorizedException,
+    UseGuards,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse as SwaggerResponse } from '@nestjs/swagger';
+import { ConfigService } from '@nestjs/config';
 import * as express from 'express';
 import { AuthService } from './auth.service';
 import { RegisterDto, LoginDto, ForgotPasswordDto, ResetPasswordDto } from './dto';
 import { Public } from './decorators';
+import { GoogleOAuthGuard } from './guards/google-oauth.guard';
 
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
-    constructor(private readonly authService: AuthService) { }
+    constructor(
+        private readonly authService: AuthService,
+        private readonly configService: ConfigService,
+    ) { }
 
     @Public()
     @Post('register')
@@ -165,5 +171,47 @@ export class AuthController {
     @ApiOperation({ summary: 'Reset password with token' })
     async resetPassword(@Body() dto: ResetPasswordDto) {
         return this.authService.resetPassword(dto.token, dto.newPassword);
+    }
+
+    // ─── Google OAuth ─────────────────────────────────────
+
+    @Public()
+    @Get('google')
+    @UseGuards(GoogleOAuthGuard)
+    @ApiOperation({ summary: 'Initiate Google OAuth login' })
+    async googleAuth() {
+        // Guard redirects to Google
+    }
+
+    @Public()
+    @Get('google/callback')
+    @UseGuards(GoogleOAuthGuard)
+    @ApiOperation({ summary: 'Google OAuth callback' })
+    async googleCallback(
+        @Req() req: express.Request,
+        @Res() res: express.Response,
+    ) {
+        const googleUser = (req as any).user;
+        const userAgent = req.headers['user-agent'];
+        const ipAddress = req.ip;
+
+        const result = await this.authService.googleLogin(
+            googleUser,
+            userAgent,
+            ipAddress,
+        );
+
+        // Set refresh token cookie
+        res.cookie('refreshToken', result.refreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV !== 'development',
+            sameSite: 'lax',
+            maxAge: 7 * 24 * 60 * 60 * 1000,
+            path: '/',
+        });
+
+        // Redirect to frontend with access token
+        const frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'http://localhost:5173';
+        res.redirect(`${frontendUrl}/auth/callback?token=${result.accessToken}`);
     }
 }

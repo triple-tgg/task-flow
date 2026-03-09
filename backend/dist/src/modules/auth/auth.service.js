@@ -104,6 +104,91 @@ let AuthService = AuthService_1 = class AuthService {
             userId: user.id,
         };
     }
+    async googleLogin(googleProfile, userAgent, ipAddress) {
+        const { googleId, email, name, picture } = googleProfile;
+        let oauthAccount = await this.prisma.oAuthAccount.findUnique({
+            where: {
+                provider_providerAccountId: {
+                    provider: 'google',
+                    providerAccountId: googleId,
+                },
+            },
+            include: { user: true },
+        });
+        let user;
+        if (oauthAccount) {
+            user = oauthAccount.user;
+        }
+        else {
+            const existingUser = await this.prisma.user.findUnique({
+                where: { email: email.toLowerCase() },
+            });
+            if (existingUser) {
+                await this.prisma.oAuthAccount.create({
+                    data: {
+                        userId: existingUser.id,
+                        provider: 'google',
+                        providerAccountId: googleId,
+                    },
+                });
+                if (!existingUser.avatarUrl && picture) {
+                    await this.prisma.user.update({
+                        where: { id: existingUser.id },
+                        data: { avatarUrl: picture, emailVerified: true },
+                    });
+                }
+                user = existingUser;
+            }
+            else {
+                user = await this.prisma.user.create({
+                    data: {
+                        name,
+                        email: email.toLowerCase(),
+                        avatarUrl: picture,
+                        authProvider: 'google',
+                        emailVerified: true,
+                    },
+                });
+                await this.prisma.oAuthAccount.create({
+                    data: {
+                        userId: user.id,
+                        provider: 'google',
+                        providerAccountId: googleId,
+                    },
+                });
+            }
+        }
+        if (user.isSuspended) {
+            throw new common_1.ForbiddenException({
+                error: 'FORBIDDEN',
+                message: 'Your account has been suspended',
+            });
+        }
+        const accessToken = this.generateAccessToken(user);
+        const { refreshToken, refreshTokenHash } = this.generateRefreshToken();
+        await this.prisma.refreshToken.create({
+            data: {
+                userId: user.id,
+                tokenHash: refreshTokenHash,
+                expiresAt: new Date(Date.now() +
+                    (this.configService.get('JWT_REFRESH_EXPIRATION_DAYS') || 7) *
+                        24 * 60 * 60 * 1000),
+                userAgent,
+                ipAddress,
+            },
+        });
+        return {
+            accessToken,
+            refreshToken,
+            user: {
+                id: user.id,
+                name: user.name,
+                email: user.email,
+                role: user.role,
+                avatarUrl: user.avatarUrl,
+            },
+        };
+    }
     async verifyEmail(token) {
         const tokenHash = this.hashToken(token);
         const record = await this.prisma.emailVerificationToken.findFirst({
@@ -175,6 +260,12 @@ let AuthService = AuthService_1 = class AuthService {
             throw new common_1.ForbiddenException({
                 error: 'FORBIDDEN',
                 message: 'Your account has been suspended',
+            });
+        }
+        if (!user.passwordHash) {
+            throw new common_1.UnauthorizedException({
+                error: 'OAUTH_ONLY',
+                message: 'This account uses Google sign-in. Please use "Continue with Google" to log in.',
             });
         }
         const isPasswordValid = await bcrypt.compare(password, user.passwordHash);

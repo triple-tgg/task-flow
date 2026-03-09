@@ -90,6 +90,118 @@ export class AuthService {
         };
     }
 
+    // ─── Google OAuth Login ──────────────────────────────────
+
+    async googleLogin(googleProfile: {
+        googleId: string;
+        email: string;
+        name: string;
+        picture?: string;
+    }, userAgent?: string, ipAddress?: string) {
+        const { googleId, email, name, picture } = googleProfile;
+
+        // 1. Check if OAuth account already exists
+        let oauthAccount = await this.prisma.oAuthAccount.findUnique({
+            where: {
+                provider_providerAccountId: {
+                    provider: 'google',
+                    providerAccountId: googleId,
+                },
+            },
+            include: { user: true },
+        });
+
+        let user: any;
+
+        if (oauthAccount) {
+            // Existing Google user → login
+            user = oauthAccount.user;
+        } else {
+            // 2. Check if user with same email exists
+            const existingUser = await this.prisma.user.findUnique({
+                where: { email: email.toLowerCase() },
+            });
+
+            if (existingUser) {
+                // Link Google account to existing user
+                await this.prisma.oAuthAccount.create({
+                    data: {
+                        userId: existingUser.id,
+                        provider: 'google',
+                        providerAccountId: googleId,
+                    },
+                });
+
+                // Update avatar if not set
+                if (!existingUser.avatarUrl && picture) {
+                    await this.prisma.user.update({
+                        where: { id: existingUser.id },
+                        data: { avatarUrl: picture, emailVerified: true },
+                    });
+                }
+
+                user = existingUser;
+            } else {
+                // 3. Create new user (Google sign up)
+                user = await this.prisma.user.create({
+                    data: {
+                        name,
+                        email: email.toLowerCase(),
+                        avatarUrl: picture,
+                        authProvider: 'google',
+                        emailVerified: true, // Google already verified
+                    },
+                });
+
+                await this.prisma.oAuthAccount.create({
+                    data: {
+                        userId: user.id,
+                        provider: 'google',
+                        providerAccountId: googleId,
+                    },
+                });
+            }
+        }
+
+        // Check if suspended
+        if (user.isSuspended) {
+            throw new ForbiddenException({
+                error: 'FORBIDDEN',
+                message: 'Your account has been suspended',
+            });
+        }
+
+        // Generate tokens
+        const accessToken = this.generateAccessToken(user);
+        const { refreshToken, refreshTokenHash } = this.generateRefreshToken();
+
+        await this.prisma.refreshToken.create({
+            data: {
+                userId: user.id,
+                tokenHash: refreshTokenHash,
+                expiresAt: new Date(
+                    Date.now() +
+                    (this.configService.get<number>('JWT_REFRESH_EXPIRATION_DAYS') || 7) *
+                    24 * 60 * 60 * 1000,
+                ),
+                userAgent,
+                ipAddress,
+            },
+        });
+
+        return {
+            accessToken,
+            refreshToken,
+            user: {
+                id: user.id,
+                name: user.name,
+                email: user.email,
+                role: user.role,
+                avatarUrl: user.avatarUrl,
+            },
+        };
+    }
+
     // ─── Verify Email ─────────────────────────────────────
 
     async verifyEmail(token: string) {
@@ -189,6 +301,13 @@ export class AuthService {
             throw new ForbiddenException({
                 error: 'FORBIDDEN',
                 message: 'Your account has been suspended',
+            });
+        }
+
+        if (!user.passwordHash) {
+            throw new UnauthorizedException({
+                error: 'OAUTH_ONLY',
+                message: 'This account uses Google sign-in. Please use "Continue with Google" to log in.',
             });
         }
 

@@ -91,6 +91,12 @@ let UsersService = class UsersService {
         if (!user) {
             throw new common_1.NotFoundException({ error: 'USER_NOT_FOUND', message: 'User not found' });
         }
+        if (!user.passwordHash) {
+            throw new common_1.ForbiddenException({
+                error: 'OAUTH_ONLY',
+                message: 'Cannot change password for Google sign-in accounts. Use forgot password to set one.',
+            });
+        }
         const isValid = await bcrypt.compare(currentPassword, user.passwordHash);
         if (!isValid) {
             throw new common_1.UnauthorizedException({

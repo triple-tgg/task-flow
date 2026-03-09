@@ -5,6 +5,7 @@ import LoginPage from './pages/auth/LoginPage';
 import RegisterPage from './pages/auth/RegisterPage';
 import ForgotPasswordPage from './pages/auth/ForgotPasswordPage';
 import ResetPasswordPage from './pages/auth/ResetPasswordPage';
+import AuthCallbackPage from './pages/auth/AuthCallbackPage';
 import ProjectsPage from './pages/ProjectsPage';
 import ProjectDetailPage from './pages/ProjectDetailPage';
 import ProjectOverviewPage from './pages/ProjectOverviewPage';
@@ -90,6 +91,7 @@ export default function App() {
           }
         />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
+        <Route path="/auth/callback" element={<AuthCallbackPage />} />
 
         {/* Public shared project (no auth) */}
         <Route path="/shared/:token" element={<PublicProjectPage />} />

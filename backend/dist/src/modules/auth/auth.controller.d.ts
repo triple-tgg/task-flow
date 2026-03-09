@@ -1,9 +1,11 @@
+import { ConfigService } from '@nestjs/config';
 import * as express from 'express';
 import { AuthService } from './auth.service';
 import { RegisterDto, LoginDto, ForgotPasswordDto, ResetPasswordDto } from './dto';
 export declare class AuthController {
     private readonly authService;
-    constructor(authService: AuthService);
+    private readonly configService;
+    constructor(authService: AuthService, configService: ConfigService);
     register(dto: RegisterDto): Promise<{
         message: string;
         userId: string;
@@ -48,4 +50,6 @@ export declare class AuthController {
     resetPassword(dto: ResetPasswordDto): Promise<{
         message: string;
     }>;
+    googleAuth(): Promise<void>;
+    googleCallback(req: express.Request, res: express.Response): Promise<void>;
 }
