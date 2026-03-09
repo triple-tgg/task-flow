@@ -23,8 +23,9 @@ FROM nginx:alpine AS production
 COPY --from=builder /app/dist /usr/share/nginx/html
 
 # Copy nginx config template
-COPY nginx.conf /etc/nginx/templates/default.conf.template
+COPY nginx.conf /etc/nginx/nginx.conf.template
 
 EXPOSE 80
 
-CMD ["nginx", "-g", "daemon off;"]
+# Only substitute $PORT, preserve nginx variables like $uri
+CMD ["/bin/sh", "-c", "envsubst '${PORT}' < /etc/nginx/nginx.conf.template > /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"]
