@@ -20,9 +20,14 @@ const pg_1 = __importDefault(require("pg"));
 let PrismaService = class PrismaService extends client_1.PrismaClient {
     pool;
     constructor() {
-        const pool = new pg_1.default.Pool({
-            connectionString: process.env.DATABASE_URL,
-        });
+        const dbHost = process.env.DB_HOST || 'localhost';
+        const dbPort = process.env.DB_PORT || '5432';
+        const dbName = process.env.DB_NAME || 'taskflow';
+        const dbUser = process.env.DB_USER || 'taskflow_user';
+        const dbPassword = process.env.DB_PASSWORD || '';
+        const dbSchema = process.env.DB_SCHEMA || 'public';
+        const connectionString = `postgresql://${dbUser}:${dbPassword}@${dbHost}:${dbPort}/${dbName}?schema=${dbSchema}`;
+        const pool = new pg_1.default.Pool({ connectionString });
         const adapter = new adapter_pg_1.PrismaPg(pool);
         super({
             adapter,

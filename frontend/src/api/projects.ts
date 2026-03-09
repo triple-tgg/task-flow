@@ -1,7 +1,4 @@
 import api from './axios';
-import axios from 'axios';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api/v1';
 
 // ─── Projects API ────────────────────────────────────
 
@@ -61,11 +58,16 @@ export interface AccessGroup {
     updatedAt: string;
 }
 
-// ─── Public API (no auth) ────────────────────────────
+// ─── Public API (no auth — uses baseURL from shared instance) ─
 
 export const publicApi = {
-    getProject: (token: string) =>
-        axios.get(`${API_BASE_URL}/projects/public/${token}`).then(r => r.data),
+    getProject: (token: string) => {
+        const baseURL = api.defaults.baseURL || 'http://localhost:3000/api/v1';
+        return api.get(`${baseURL}/projects/public/${token}`, {
+            // Skip auth interceptor for public endpoint
+            headers: { Authorization: undefined },
+        }).then(r => r.data);
+    },
 };
 
 // ─── Access Groups API ───────────────────────────────

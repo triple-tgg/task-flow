@@ -11,8 +11,11 @@ const app_module_1 = require("./app.module");
 async function bootstrap() {
     const app = await core_1.NestFactory.create(app_module_1.AppModule);
     app.setGlobalPrefix('api/v1');
+    const allowedOrigins = (process.env.FRONTEND_URL || 'http://localhost:5173')
+        .split(',')
+        .map((origin) => origin.trim());
     app.enableCors({
-        origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+        origin: allowedOrigins,
         credentials: true,
     });
     app.use((0, cookie_parser_1.default)());
@@ -21,18 +24,20 @@ async function bootstrap() {
         forbidNonWhitelisted: true,
         transform: true,
     }));
-    const config = new swagger_1.DocumentBuilder()
-        .setTitle('TaskFlow API')
-        .setDescription('TaskFlow — Task Management System API')
-        .setVersion('1.0')
-        .addBearerAuth()
-        .build();
-    const document = swagger_1.SwaggerModule.createDocument(app, config);
-    swagger_1.SwaggerModule.setup('api', app, document);
+    if (process.env.NODE_ENV !== 'production') {
+        const config = new swagger_1.DocumentBuilder()
+            .setTitle('TaskFlow API')
+            .setDescription('TaskFlow — Task Management System API')
+            .setVersion('1.0')
+            .addBearerAuth()
+            .build();
+        const document = swagger_1.SwaggerModule.createDocument(app, config);
+        swagger_1.SwaggerModule.setup('api', app, document);
+        console.log(`📚 Swagger docs at http://localhost:${process.env.PORT || 3000}/api`);
+    }
     const port = process.env.PORT || 3000;
-    await app.listen(port);
-    console.log(`🚀 TaskFlow API running on http://localhost:${port}`);
-    console.log(`📚 Swagger docs at http://localhost:${port}/api`);
+    await app.listen(port, '0.0.0.0');
+    console.log(`🚀 TaskFlow API running on port ${port}`);
 }
 bootstrap();
 //# sourceMappingURL=main.js.map
