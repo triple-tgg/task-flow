@@ -9,6 +9,9 @@ COPY prisma ./prisma/
 
 RUN npm ci
 
+# Dummy DATABASE_URL for prisma generate (not used at runtime)
+ENV DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy?schema=public"
+
 # Generate Prisma Client
 RUN npx prisma generate
 
