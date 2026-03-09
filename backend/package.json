@@ -17,7 +17,12 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "prisma:generate": "npx ts-node prisma/preload-env.ts generate",
+    "prisma:migrate": "npx ts-node prisma/preload-env.ts migrate dev",
+    "prisma:migrate:deploy": "npx ts-node prisma/preload-env.ts migrate deploy",
+    "prisma:db:push": "npx ts-node prisma/preload-env.ts db push",
+    "prisma:studio": "npx ts-node prisma/preload-env.ts studio"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",

@@ -10,9 +10,16 @@ export class PrismaService
   private pool: pg.Pool;
 
   constructor() {
-    const pool = new pg.Pool({
-      connectionString: process.env.DATABASE_URL,
-    });
+    const dbHost = process.env.DB_HOST || 'localhost';
+    const dbPort = process.env.DB_PORT || '5432';
+    const dbName = process.env.DB_NAME || 'taskflow';
+    const dbUser = process.env.DB_USER || 'taskflow_user';
+    const dbPassword = process.env.DB_PASSWORD || '';
+    const dbSchema = process.env.DB_SCHEMA || 'public';
+
+    const connectionString = `postgresql://${dbUser}:${dbPassword}@${dbHost}:${dbPort}/${dbName}?schema=${dbSchema}`;
+
+    const pool = new pg.Pool({ connectionString });
     const adapter = new PrismaPg(pool);
     super({
       adapter,
